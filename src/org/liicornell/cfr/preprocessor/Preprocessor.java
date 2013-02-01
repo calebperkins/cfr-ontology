@@ -1,0 +1,158 @@
+package org.liicornell.cfr.preprocessor;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
+import org.apache.mahout.classifier.bayes.XmlInputFormat;
+
+public class Preprocessor extends Configured implements Tool {
+	private static class Map extends MapReduceBase implements
+			Mapper<LongWritable, Text, LongWritable, Text> {
+
+		private static final XMLInputFactory factory = XMLInputFactory
+				.newInstance();
+
+		private final Set<String> agenciesToRemove = new HashSet<String>();
+
+		private static String extractSentence(String document)
+				throws IOException {
+
+			try {
+				XMLStreamReader reader = factory
+						.createXMLStreamReader(new StringReader(document));
+				String s = "";
+				while (reader.hasNext()) {
+					int code = reader.next();
+					switch (code) {
+					case XMLStreamReader.CHARACTERS:
+						s += reader.getText();
+					}
+				}
+				reader.close();
+				return s;
+			} catch (XMLStreamException ex) {
+				throw new IOException(ex);
+			}
+		}
+
+		@Override
+		public void configure(JobConf job) {
+			try {
+				Path[] agencyFiles = DistributedCache.getLocalCacheFiles(job);
+				if (job.getBoolean("cfr.remove.agencies", false)) {
+					for (Path path : agencyFiles) {
+						parseAgencyFile(path);
+					}
+				}
+			} catch (IOException e) {
+				System.err.println(e);
+			}
+		}
+
+		private void parseAgencyFile(Path path) throws IOException {
+			BufferedReader fis = new BufferedReader(new FileReader(
+					path.toString()));
+			String agency = null;
+			while ((agency = fis.readLine()) != null) {
+				agenciesToRemove.add(agency);
+			}
+			fis.close();
+			System.out.println("Read agencies");
+		}
+
+		@Override
+		public void map(LongWritable key, Text value,
+				OutputCollector<LongWritable, Text> output, Reporter reporter)
+				throws IOException {
+			String document = value.toString();
+			String s = extractSentence(document);
+			s = processSentence(s);
+			output.collect(key, new Text(s));
+		}
+
+		private String processSentence(String sentence) {
+			// Remove anything in <>
+			sentence = sentence.replaceAll("\\<.*?\\>", "");
+			// Remove and\or and/or
+			sentence = sentence.replace("and/or", "or");
+			sentence = sentence.replace("and\\or", "or");
+			sentence = sentence.replaceAll("\n", "");
+			sentence = sentence.replaceAll("( )+", " ");
+			sentence = sentence.replaceAll("§§", "Section");
+			sentence = sentence.replaceAll(";", ".");
+			sentence = sentence.replaceAll(":", ".");
+			// Remove numbers
+			sentence = sentence.replaceAll("\\d*(\\.)*\\d*", "");
+			// Replace oxford comma
+			sentence = sentence.replaceAll(", or", " or");
+			sentence = sentence.replaceAll(", and", " and");
+			sentence = sentence + ".";
+
+			for (String agency : agenciesToRemove) {
+				sentence = sentence.replaceAll(agency, "Agency");
+			}
+
+			return sentence;
+		}
+
+	}
+
+	public static void main(String[] args) throws Exception {
+		int res = ToolRunner.run(null, new Preprocessor(), args);
+		System.exit(res);
+	}
+
+	@Override
+	public int run(String[] args) throws Exception {
+		JobConf conf = new JobConf(getConf(), Preprocessor.class);
+		conf.setJobName("preprocess");
+
+		conf.setOutputKeyClass(LongWritable.class);
+		conf.setOutputValueClass(Text.class);
+
+		conf.setMapperClass(Map.class);
+
+		conf.setInputFormat(XmlInputFormat.class);
+		conf.set("xmlinput.start", "<text>");
+		conf.set("xmlinput.end", "</text>");
+		conf.setOutputFormat(TextOutputFormat.class);
+
+		ArrayList<String> other_args = new ArrayList<String>();
+		for (int i = 0; i < args.length; ++i) {
+			if ("-agencies".equals(args[i])) {
+				conf.setBoolean("cfr.remove.agencies", true);
+				DistributedCache
+						.addCacheFile(new Path(args[++i]).toUri(), conf);
+			} else if ("-acts".equals(args[i])) {
+				conf.setBoolean("cfr.remove.acts", true);
+				DistributedCache
+						.addCacheFile(new Path(args[++i]).toUri(), conf);
+			} else {
+				other_args.add(args[i]);
+			}
+		}
+
+		FileInputFormat.setInputPaths(conf, new Path(other_args.get(0)));
+		FileOutputFormat.setOutputPath(conf, new Path(other_args.get(1)));
+
+		JobClient.runJob(conf);
+		return 0;
+	}
+
+}
