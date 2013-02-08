@@ -29,7 +29,8 @@ public class Preprocessor extends Configured implements Tool {
 				.newInstance();
 
 		private final Set<String> agenciesToRemove = new HashSet<String>();
-		private boolean resolvePronouns;
+		private boolean resolvePronouns = false;;
+		private final Text outValue = new Text();
 
 		private static String extractSentence(String document)
 				throws IOException {
@@ -85,7 +86,8 @@ public class Preprocessor extends Configured implements Tool {
 			String document = value.toString();
 			String s = extractSentence(document);
 			s = processSentence(s);
-			output.collect(key, new Text(s));
+			outValue.set(s);
+			output.collect(key, outValue);
 		}
 
 		private String processSentence(String sentence) {
@@ -138,6 +140,9 @@ public class Preprocessor extends Configured implements Tool {
 		conf.set("xmlinput.start", "<text>");
 		conf.set("xmlinput.end", "</text>");
 		conf.setOutputFormat(TextOutputFormat.class);
+		
+		// Reuse the JVM to conserve memory
+		conf.setInt("mapred.job.reuse.jvm.num.tasks", -1);
 
 		ArrayList<String> other_args = new ArrayList<String>();
 		for (int i = 0; i < args.length; ++i) {
