@@ -29,6 +29,7 @@ public class Preprocessor extends Configured implements Tool {
 				.newInstance();
 
 		private final Set<String> agenciesToRemove = new HashSet<String>();
+		private boolean resolvePronouns;
 
 		private static String extractSentence(String document)
 				throws IOException {
@@ -63,6 +64,7 @@ public class Preprocessor extends Configured implements Tool {
 			} catch (IOException e) {
 				System.err.println(e);
 			}
+			resolvePronouns = job.getBoolean("cfr.nlp.resolve.pronouns", false);
 		}
 
 		private void parseAgencyFile(Path path) throws IOException {
@@ -103,6 +105,10 @@ public class Preprocessor extends Configured implements Tool {
 			sentence = sentence.replaceAll(", or", " or");
 			sentence = sentence.replaceAll(", and", " and");
 			sentence = sentence + ".";
+			
+			if (resolvePronouns) {
+				sentence = NLP.getInstance().resolvePronouns(sentence);
+			}
 
 			for (String agency : agenciesToRemove) {
 				sentence = sentence.replaceAll(agency, "Agency");
@@ -143,6 +149,8 @@ public class Preprocessor extends Configured implements Tool {
 				conf.setBoolean("cfr.remove.acts", true);
 				DistributedCache
 						.addCacheFile(new Path(args[++i]).toUri(), conf);
+			} else if ("-resolvePronouns".equals(args[i])) {
+				conf.setBoolean("cfr.nlp.resolve.pronouns", true);
 			} else {
 				other_args.add(args[i]);
 			}
