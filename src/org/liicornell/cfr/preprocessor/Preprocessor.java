@@ -98,7 +98,7 @@ public class Preprocessor extends Configured implements Tool {
 			sentence = sentence.replace("and\\or", "or");
 			sentence = sentence.replaceAll("\n", "");
 			sentence = sentence.replaceAll("( )+", " ");
-			sentence = sentence.replaceAll("§§", "Section");
+			sentence = sentence.replaceAll("�", "Section");
 			sentence = sentence.replaceAll(";", ".");
 			sentence = sentence.replaceAll(":", ".");
 			// Remove numbers
