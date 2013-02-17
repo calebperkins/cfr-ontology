@@ -23,7 +23,7 @@ import org.apache.mahout.classifier.bayes.XmlInputFormat;
 
 public class Preprocessor extends Configured implements Tool {
 	private static class Map extends MapReduceBase implements
-			Mapper<LongWritable, Text, LongWritable, Text> {
+			Mapper<Text, Text, Text, Text> {
 
 		private static final XMLInputFactory factory = XMLInputFactory
 				.newInstance();
@@ -80,8 +80,8 @@ public class Preprocessor extends Configured implements Tool {
 		}
 
 		@Override
-		public void map(LongWritable key, Text value,
-				OutputCollector<LongWritable, Text> output, Reporter reporter)
+		public void map(Text key, Text value,
+				OutputCollector<Text, Text> output, Reporter reporter)
 				throws IOException {
 			String document = value.toString();
 			String s = extractSentence(document);
@@ -131,7 +131,7 @@ public class Preprocessor extends Configured implements Tool {
 		JobConf conf = new JobConf(getConf(), Preprocessor.class);
 		conf.setJobName("preprocess");
 
-		conf.setOutputKeyClass(LongWritable.class);
+		conf.setOutputKeyClass(Text.class);
 		conf.setOutputValueClass(Text.class);
 
 		conf.setMapperClass(Map.class);

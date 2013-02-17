@@ -23,25 +23,24 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.TextInputFormat;
 
 /**
- * Reads records that are delimited by a specifc begin/end tag.
+ * Reads records that are delimited by a specific begin/end tag.
  */
-public class XmlInputFormat extends TextInputFormat {
+public class XmlInputFormat extends FileInputFormat<Text, Text> {
 
 	public static final String START_TAG_KEY = "xmlinput.start";
 	public static final String END_TAG_KEY = "xmlinput.end";
 
 	@Override
-	public RecordReader<LongWritable, Text> getRecordReader(
+	public RecordReader<Text, Text> getRecordReader(
 			InputSplit inputSplit, JobConf jobConf, Reporter reporter)
 			throws IOException {
 		return new XmlRecordReader((FileSplit) inputSplit, jobConf);
@@ -53,11 +52,12 @@ public class XmlInputFormat extends TextInputFormat {
 	 * 
 	 */
 	public static class XmlRecordReader implements
-			RecordReader<LongWritable, Text> {
+			RecordReader<Text, Text> {
 		private final byte[] startTag;
 		private final byte[] endTag;
 		private final long start;
 		private final long end;
+		private final String fileName;
 		private final FSDataInputStream fsin;
 		private final DataOutputBuffer buffer = new DataOutputBuffer();
 
@@ -70,19 +70,20 @@ public class XmlInputFormat extends TextInputFormat {
 			start = split.getStart();
 			end = start + split.getLength();
 			Path file = split.getPath();
+			fileName = file.getName();
 			FileSystem fs = file.getFileSystem(jobConf);
 			fsin = fs.open(split.getPath());
 			fsin.seek(start);
 		}
 
 		@Override
-		public boolean next(LongWritable key, Text value) throws IOException {
+		public boolean next(Text key, Text value) throws IOException {
 			if (fsin.getPos() < end) {
 				if (readUntilMatch(startTag, false)) {
 					try {
 						buffer.write(startTag);
 						if (readUntilMatch(endTag, true)) {
-							key.set(fsin.getPos());
+							key.set(fileName);
 							value.set(buffer.getData(), 0, buffer.getLength());
 							return true;
 						}
@@ -95,8 +96,8 @@ public class XmlInputFormat extends TextInputFormat {
 		}
 
 		@Override
-		public LongWritable createKey() {
-			return new LongWritable();
+		public Text createKey() {
+			return new Text();
 		}
 
 		@Override
