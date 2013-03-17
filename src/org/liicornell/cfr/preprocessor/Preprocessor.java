@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.xml.stream.XMLInputFactory;
@@ -121,6 +122,19 @@ public class Preprocessor extends Configured implements Tool {
 
 	}
 
+	@SuppressWarnings("unused")
+	private static class Reduce extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
+
+		@Override
+		public void reduce(Text key, Iterator<Text> values,
+				OutputCollector<Text, Text> output, Reporter reporter)
+				throws IOException {
+			while (values.hasNext()) {
+				//
+			}
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 		int res = ToolRunner.run(null, new Preprocessor(), args);
 		System.exit(res);
