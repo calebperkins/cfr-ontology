@@ -10,11 +10,12 @@ public class TripleTest {
 
 	@Test
 	public void test() {
-		Set<Triple> triples = NLP.getInstance().generateTriples("Caleb likes cats and dogs. Caleb also enjoys fish.");
+		String text = "Each agency is responsible for preparing reference material or a guide for requesting records or information from that agency.";
+		Set<Triple> triples = NLP.getInstance().generateTriples(text);
 		for (Triple triple : triples) {
 			System.out.println(triple);
 		}
-		fail("Not yet implemented");
+		assertFalse(triples.isEmpty());
 	}
 
 }

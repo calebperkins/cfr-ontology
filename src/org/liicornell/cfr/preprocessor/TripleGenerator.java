@@ -1,6 +1,7 @@
 package org.liicornell.cfr.preprocessor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,7 +19,9 @@ import edu.stanford.nlp.trees.TypedDependency;
 public class TripleGenerator {
 	private final List<TypedDependency> tdl;
 	private final Set<Triple> triples;
-	private final Map<TreeGraphNode, List<String>> predicateSubPropertyMap = new HashMap<TreeGraphNode, List<String>>();
+	private final Collection<TreeGraphNode> nodes;
+	
+//	private final Map<TreeGraphNode, List<String>> predicateSubPropertyMap = new HashMap<TreeGraphNode, List<String>>();
 	private final Map<TreeGraphNode, List<String>> vocabMap = new HashMap<TreeGraphNode, List<String>>();
 	private final Map<TreeGraphNode, List<TreeGraphNode>> nSubjMap = new HashMap<TreeGraphNode, List<TreeGraphNode>>();
 	private final Map<TreeGraphNode, List<TreeGraphNode>> dObjMap = new HashMap<TreeGraphNode, List<TreeGraphNode>>();
@@ -31,8 +34,25 @@ public class TripleGenerator {
 	public TripleGenerator(GrammaticalStructure gs, Set<Triple> triples) {
 		tdl = gs.typedDependenciesCCprocessed(true);
 		removeRomanNumerals(tdl);
+		
+		nodes = gs.getNodes();
 
 		this.triples = triples;
+	}
+	
+	// Finds the noun after verb for finding object of nsubj(verb, noun)
+	private TreeGraphNode findNounAfterVerb(TreeGraphNode verbNode) {
+		boolean foundVerb = false;
+
+		for (TreeGraphNode node : nodes) {
+			if (node.equals(verbNode)) {
+				foundVerb = true;
+			}
+			if (foundVerb == true && isNoun(node.label().tag())) {
+				return node;
+			}
+		}
+		return null;
 	}
 
 	// Generate conj and negation hash maps
@@ -62,10 +82,6 @@ public class TripleGenerator {
 		generateNSubjDObjHashMaps();
 		generateNSubjDobj();
 	}
-	
-	private static Triple getTriple() {
-		return null; // TODO
-	}
 
 	// Generate triples of the form nsubj, dObj
 	private void generateNSubjDobj() {
@@ -81,7 +97,7 @@ public class TripleGenerator {
 								// for conjugate as well
 								if (conjMap.containsKey(snode)) {
 
-									Triple triple = new Triple(
+									Triple triple = Triple.lii(
 											getFullyQualifiedNoun(conjMap
 													.get(snode)),
 											getFullyQualifiedNoun(onode),
@@ -91,7 +107,7 @@ public class TripleGenerator {
 
 								}
 								if (conjMap.containsKey(onode)) {
-									Triple triple = new Triple(
+									Triple triple = Triple.lii(
 											getFullyQualifiedNoun(snode),
 											getFullyQualifiedNoun(conjMap
 													.get(onode)),
@@ -100,7 +116,7 @@ public class TripleGenerator {
 									triples.add(triple);
 
 								}
-								Triple triple = new Triple(
+								Triple triple = Triple.lii(
 										getFullyQualifiedNoun(snode),
 										getFullyQualifiedNoun(onode), "not "
 												+ getFullyQualifiedVerb(node));
@@ -112,7 +128,7 @@ public class TripleGenerator {
 						for (TreeGraphNode onode : dObjMap.get(node)) {
 							if (isNoun(onode.label().tag())) {
 								if (conjMap.containsKey(snode)) {
-									Triple triple = new Triple(
+									Triple triple = Triple.lii(
 											getFullyQualifiedNoun(conjMap
 													.get(snode)),
 											getFullyQualifiedNoun(onode),
@@ -121,7 +137,7 @@ public class TripleGenerator {
 
 								}
 								if (conjMap.containsKey(onode)) {
-									Triple triple = new Triple(
+									Triple triple = Triple.lii(
 											getFullyQualifiedNoun(snode),
 											getFullyQualifiedNoun(conjMap
 													.get(onode)),
@@ -129,7 +145,7 @@ public class TripleGenerator {
 									triples.add(triple);
 
 								}
-								Triple triple = new Triple(
+								Triple triple = Triple.lii(
 										getFullyQualifiedNoun(snode),
 										getFullyQualifiedNoun(onode),
 										getFullyQualifiedVerb(node));
@@ -163,7 +179,7 @@ public class TripleGenerator {
 								String multipleObjects = getFullyQualifiedNounForObject(object);
 								for (String fullyqualifiedObject : multipleObjects
 										.split(",")) {
-									Triple triple = new Triple(
+									Triple triple = Triple.lii(
 											getFullyQualifiedNoun(conjMap
 													.get(snode)),
 											fullyqualifiedObject,
@@ -178,7 +194,7 @@ public class TripleGenerator {
 							// triples for each
 							for (String fullyqualifiedObject : multipleObjects
 									.split(",")) {
-								Triple triple = new Triple(
+								Triple triple = Triple.lii(
 										getFullyQualifiedNoun(snode),
 										fullyqualifiedObject, "not "
 												+ getFullyQualifiedVerb(node));
@@ -192,7 +208,7 @@ public class TripleGenerator {
 								String multipleObjects = getFullyQualifiedNounForObject(object);
 								for (String fullyqualifiedObject : multipleObjects
 										.split(",")) {
-									Triple triple = new Triple(
+									Triple triple = Triple.lii(
 											getFullyQualifiedNoun(conjMap
 													.get(snode)),
 											fullyqualifiedObject
@@ -205,7 +221,7 @@ public class TripleGenerator {
 							String multipleObjects = getFullyQualifiedNounForObject(object);
 							for (String fullyqualifiedObject : multipleObjects
 									.split(",")) {
-								Triple triple = new Triple(
+								Triple triple = Triple.lii(
 										getFullyQualifiedNoun(snode),
 										fullyqualifiedObject
 												+ findObjectString(object),
@@ -219,12 +235,12 @@ public class TripleGenerator {
 			}
 		}
 	}
-	
+
 	// FInd consecutive nouns after the first noun after the verb
-	private static String findObjectString(TreeGraphNode objectNode) {
+	private String findObjectString(TreeGraphNode objectNode) {
 
 		List<TreeGraphNode> nodeArrayList = new ArrayList<TreeGraphNode>();
-		for (TreeGraphNode node : nodeList) {
+		for (TreeGraphNode node : nodes) {
 			nodeArrayList.add(node);
 		}
 		Collections.sort(nodeArrayList, new Comparator<TreeGraphNode>() {
@@ -263,11 +279,11 @@ public class TripleGenerator {
 		}
 		return objectSTring;
 	}
-	
+
 	private static String getFullyQualifiedVerb(TreeGraphNode node) {
 		return node.nodeString();
 	}
-	
+
 	// FInd all the qualifiers of noun in vocab hash map
 	private String getFullyQualifiedNoun(TreeGraphNode subject) {
 		if (vocabMap.containsKey(subject)) {

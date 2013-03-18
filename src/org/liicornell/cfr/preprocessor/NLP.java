@@ -84,7 +84,6 @@ public class NLP {
 			
 			GrammaticalStructure gs = gsf.newGrammaticalStructure(lp
 					.apply(sentence));
-			// Collection<TreeGraphNode> nodes = gs.getNodes();
 			
 			new TripleGenerator(gs, triples).run();
 		}
