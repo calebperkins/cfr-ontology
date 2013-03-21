@@ -1,4 +1,4 @@
-package org.liicornell.cfr.preprocessor;
+package org.liicornell.cfr.hadoop;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -21,6 +21,7 @@ import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.classifier.bayes.XmlInputFormat;
+import org.liicornell.cfr.nlp.NLP;
 
 public class Preprocessor extends Configured implements Tool {
 	private static class Map extends MapReduceBase implements

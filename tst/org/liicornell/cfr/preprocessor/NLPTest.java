@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.util.Set;
 
 import org.junit.Test;
+import org.liicornell.cfr.nlp.NLP;
+import org.liicornell.cfr.nlp.Triple;
 
 public class NLPTest {
 

@@ -1,4 +1,4 @@
-package org.liicornell.cfr.preprocessor;
+package org.liicornell.cfr.nlp;
 
 import java.io.Reader;
 import java.io.StringReader;
