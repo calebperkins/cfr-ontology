@@ -35,6 +35,14 @@ public class Triple {
 	public static Triple lii(String subject, String object, String predicate) {
 		return new Triple(subject, object, "liivoc:" + predicate);
 	}
+	
+	public Triple inversion() {
+		if (predicate.equals(BROADER))
+			return new Triple(object, subject, NARROWER);
+		if (predicate.equals(NARROWER))
+			return new Triple(object, subject, BROADER);
+		return new Triple(object, subject, RELATED);
+	}
 
 	@Override
 	public int hashCode() {
