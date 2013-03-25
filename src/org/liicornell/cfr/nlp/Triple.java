@@ -5,9 +5,9 @@ public class Triple {
 	public final String object;
 	public final String predicate;
 	
-	private static final String BROADER = "skos:broader";
-	private static final String NARROWER = "skos:narrower";
-	private static final String RELATED = "skos:related";
+	public static final String BROADER = "skos:broader";
+	public static final String NARROWER = "skos:narrower";
+	public static final String RELATED = "skos:related";
 	
 	private Triple(String subject, String object, String predicate) {
 		this.subject = subject.trim();

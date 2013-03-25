@@ -2,11 +2,14 @@ package org.liicornell.cfr.preprocessor;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 
 import org.junit.Test;
 import org.liicornell.cfr.nlp.NLP;
 import org.liicornell.cfr.nlp.Triple;
+import org.liicornell.cfr.runner.RDFGenerator;
 
 public class NLPTest {
 
@@ -43,6 +46,19 @@ public class NLPTest {
 		String text = "Caleb likes dogs. He thinks they are cute.";
 		String result = NLP.getInstance().resolvePronouns(text);
 		assertEquals("Caleb likes dogs. Caleb thinks they are cute.", result);
+	}
+	
+	@Test
+	public void testRDF() throws Exception {
+		RDFGenerator gen = new RDFGenerator();
+		Collection<Triple> triples = new ArrayList<Triple>();
+		
+		Triple t = Triple.broader("blue dragons", "dragons");
+		triples.add(t);
+		
+		gen.buildModel(triples);
+		gen.writeTo("/tmp/hello.rdf");
+		System.out.println(gen);
 	}
 
 }
