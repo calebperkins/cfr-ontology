@@ -23,11 +23,19 @@ public class NLPTest {
 	
 	@Test
 	public void testSimpleVerbGeneration() {
-		String text = "The quick brown fox jumps over the lazy dog.";
+		String text = "A rare black squirrel has become a regular visitor to a suburban garden.";
 		Set<Triple> triples = NLP.getInstance().generateTriples(text);
 		for (Triple triple : triples) {
 			System.out.println(triple);
 		}
+		assertTrue(triples.contains(Triple.lii("squirrel", "visitor", "become")));
+		
+		text = "The quick brown fox jumps over the lazy dog.";
+		triples = NLP.getInstance().generateTriples(text);
+		for (Triple triple : triples) {
+			System.out.println(triple);
+		}
+		assertTrue(triples.contains(Triple.lii("fox", "dog", "jumps")));
 	}
 	
 	@Test
