@@ -156,9 +156,16 @@ public class TripleGenerator implements Runnable {
 	}
 
 	private void getSubjectVerbObjectTriples(Parse s) {
-		Parse[] x = s.getChildren();
-		Parse np = x[0];
-		Parse vp = x[1];
+		Parse np = null;
+		Parse vp = null;
+		for (Parse child : s.getChildren()) {
+			if (child.getType().equals("NP"))
+				np = child;
+			else if (child.getType().equals("VP"))
+				vp = child;
+		}
+		if (vp == null || np == null)
+			return;
 
 		Parse subject = getSubject(np);
 		if (subject == null)
