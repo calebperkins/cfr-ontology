@@ -18,6 +18,16 @@ public class NLPTest {
 			System.out.println(triple);
 		}
 		assertFalse(triples.isEmpty());
+		assertTrue(triples.contains(Triple.narrower("material", "reference material")));
+	}
+	
+	@Test
+	public void testSimpleVerbGeneration() {
+		String text = "The quick brown fox jumps over the lazy dog.";
+		Set<Triple> triples = NLP.getInstance().generateTriples(text);
+		for (Triple triple : triples) {
+			System.out.println(triple);
+		}
 	}
 	
 	@Test

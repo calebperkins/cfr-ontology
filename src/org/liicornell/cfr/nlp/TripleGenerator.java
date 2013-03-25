@@ -58,7 +58,7 @@ public class TripleGenerator implements Runnable {
 	private static Parse collapse(Parse p) {
 		for (Parse kid : p.getChildren()) {
 			if (kid.getType().equals("NP"))
-				return kid;
+				return collapse(kid);
 		}
 		return p;
 	}
@@ -85,9 +85,39 @@ public class TripleGenerator implements Runnable {
 	}
 	
 	private static boolean isNoun(Parse node) {
-		if (node == null)
-			return false;
-		return node.getType().startsWith("N");
+		return node != null && node.getType().startsWith("N");
+	}
+	
+	private static boolean isVerb(Parse node) {
+		return node != null && node.getType().startsWith("V");
+	}
+	
+	private static Parse getVerb(Parse root) {
+		if (isVerb(root) && !root.getType().equals("VP"))
+			return root;
+		for (Parse c : root.getChildren()) {
+			Parse v = getVerb(c);
+			if (v != null)
+				return v;
+		}
+		return null;
+	}
+	
+	private void findSubjectObjectTriples(Parse p) {
+		Parse parent = p.getParent();
+		Parse s = getType(parent, "S");
+		Parse subject = collapse(getType(s, "NP"));
+		Parse vp = getType(s, "VP");
+		Parse verb = getVerb(vp);
+		Parse object = collapse(getType(vp, "NP"));
+		
+		if (subject != null && verb != null && object != null && !subject.equals(object)) {
+			Triple t = Triple.lii(subject.toString(), object.toString(), verb.toString());
+			synchronized (triples) {
+				triples.add(t);
+			}
+		}
+		
 	}
 	
 	private void traverse(Parse p) {		
@@ -95,45 +125,14 @@ public class TripleGenerator implements Runnable {
 			findNarrowerTriples(p);
 		} else if (p.getType().equals("CC")) {
 			findRelatedTriples(p);
+		} else if (p.getType().equals("VP")) {
+			findSubjectObjectTriples(p);
 		}
 		
 		for (Parse child : p.getChildren()) {
 			traverse(child);
 		}
 	}
-	
-//	private void getSubjectVerbObjects(Parse p) {
-//		Parse s = getType(p, "S");
-//		Parse subject = getType(s, "NP");
-//		Parse vp = getType(s, "VP");
-//		Parse verb = getType(vp, "VBZ");
-//		Parse object = getType(vp, "NP");
-//		
-//		if (subject != null && verb != null && object != null) {
-////			verbSubjects.put(verb, subject);
-////			verbObjects.put(verb, object);
-//			Triple t = makeTriple(subject, object, verb);
-//			synchronized (triples) {
-//				triples.add(t);
-//			}
-//		}
-//		
-//	}
-	
-//	private static String npToString(Parse np) {
-//		StringBuilder sb = new StringBuilder();
-//		for (Parse p : np.getChildren()) {
-//			if (!p.getType().equals("DT")) {
-//				sb.append(p.toString());
-//				sb.append(' ');
-//			}
-//		}
-//		return sb.toString();
-//	}
-//	
-//	private static Triple makeTriple(Parse s, Parse o, Parse p) {
-//		return Triple.lii(npToString(s), npToString(o), p.toString());
-//	}
 	
 	private static void prune(Parse p) {
 		int n = p.getChildCount();
@@ -155,9 +154,11 @@ public class TripleGenerator implements Runnable {
 		for (int i = 0; i < sentences.length; i++) {
 			String sentence = sentences[i];
 			Span[] spans = tokens[i];
-			Parse[] parses = NLP.getInstance().parseSentence(sentence, spans, 1);
+			Parse[] parses = NLP.getInstance().parseSentence(sentence, spans, 2);
 			
 			for (Parse p : parses) {
+				if (getType(p, "S") == null)
+					continue;
 				prune(p);
 				p.show();
 				traverse(p);
