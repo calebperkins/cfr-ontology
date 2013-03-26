@@ -9,13 +9,13 @@ import opennlp.tools.util.Span;
 
 public class TripleGenerator implements Runnable {
 	private final Set<Triple> triples;
-	private final String[] sentences;
-	private final Span[][] tokens;
+	private String[] sentences;
+	private Span[][] tokens;
+	private String text;
 
-	public TripleGenerator(Set<Triple> triples, final String[] sentences, final Span[][] tokens) {
+	public TripleGenerator(Set<Triple> triples, String t) {
 		this.triples = triples;
-		this.sentences = sentences;
-		this.tokens = tokens;
+		text = t;
 	}
 
 	protected static Parse getType(Parse p, String type) {
@@ -192,6 +192,8 @@ public class TripleGenerator implements Runnable {
 			return;
 
 		Triple t = Triple.lii(subject.toString(), object.toString(), verb.toString());
+		if (t.predicate.isEmpty())
+			return;
 		synchronized (triples) {
 			triples.add(t);
 		}
@@ -208,13 +210,12 @@ public class TripleGenerator implements Runnable {
 		return null;
 	}
 
+	
+	@SuppressWarnings("unused")
 	private static void prune(Parse p) {
-		int n = p.getChildCount();
-		Parse[] children = p.getChildren();
-		for (int i = 0; i < n; i++) {
-			Parse c = children[i];
+		for (Parse c : p.getChildren()) {
 			if (c.getType().equals("DT")) {
-				p.remove(i);
+				p.remove(p.indexOf(c));
 			}
 		}
 
@@ -222,20 +223,45 @@ public class TripleGenerator implements Runnable {
 			prune(c);
 		}
 	}
+	
+	private static String processSentence(String sentence) {
+		// Remove anything in <>
+		sentence = sentence.replaceAll("\\<.*?\\>", "");
+		// Remove and\or and/or
+		sentence = sentence.replace("and/or", "or");
+		sentence = sentence.replace("and\\or", "or");
+		sentence = sentence.replaceAll("\n", "");
+		sentence = sentence.replaceAll("( )+", " ");
+		sentence = sentence.replaceAll("§", "Section");
+		sentence = sentence.replaceAll(";", ".");
+		sentence = sentence.replaceAll(":", ".");
+		// Remove numbers
+		sentence = sentence.replaceAll("\\d*(\\.)*\\d*", "");
+		// Replace oxford comma
+		sentence = sentence.replaceAll(", or", " or");
+		sentence = sentence.replaceAll(", and", " and");
+		sentence = sentence + ".";
+		return sentence;
+	}
 
 	@Override
 	public void run() {
+		text = processSentence(text);
+		sentences = NLP.getInstance().getSentences(text);
+		tokens = NLP.getInstance().getTokens(sentences);
 		for (int i = 0; i < sentences.length; i++) {
 			String sentence = sentences[i];
 			Span[] spans = tokens[i];
 			Parse[] parses = NLP.getInstance().parseSentence(sentence, spans, 2);
+			
+//			System.out.println(sentence);
 
 			for (Parse p : parses) {
 				if (!p.getChildren()[0].getType().equals("S"))
 					continue;
 				
-				prune(p);
-				p.show();
+//				prune(p);
+//				p.show();
 				traverse(p);
 			}
 		}

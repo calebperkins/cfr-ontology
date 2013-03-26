@@ -16,7 +16,7 @@ import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class RDFGenerator {
-	public static String LII_URI = "http://liicornell.org/liivoc/";
+	public static String LII_URI = "http://liicornell.org/liivoc#";
 
 	private final Model model;
 
@@ -48,7 +48,6 @@ public class RDFGenerator {
 
 		sub.addProperty(SKOS.prefLabel, sub);
 		sub.addProperty(RDFS.label, sub);
-
 		sub.addProperty(getProperty(t.predicate), obj);
 	}
 
@@ -59,17 +58,15 @@ public class RDFGenerator {
 			return SKOS.narrower;
 		if (predicate.equals(Triple.RELATED))
 			return SKOS.related;
-
-		Property p = model.createProperty(LII_URI, predicate);
 		createPredicateDescription(predicate);
-		return p;
+		return model.createProperty(LII_URI, predicate);
 	}
 
 	private void createPredicateDescription(String predicate) {
-		Resource predResource = liiResource(predicate);
-		predResource.addProperty(RDFS.label, predicate);
-		predResource.addProperty(RDF.type, OWL.ObjectProperty);
-		predResource.addProperty(RDF.type, RDF.Property);
+		Resource pred = liiResource(predicate);
+		pred.addProperty(RDFS.label, predicate);
+		pred.addProperty(RDF.type, OWL.ObjectProperty);
+		pred.addProperty(RDF.type, RDF.Property);
 	}
 
 	private Resource liiResource(String s) {

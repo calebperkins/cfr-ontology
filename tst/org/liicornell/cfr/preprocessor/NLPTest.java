@@ -49,16 +49,25 @@ public class NLPTest {
 	}
 	
 	@Test
+	public void testValidTriple() {
+		Triple t = Triple.lii("states", "Florida", " (shall include) ");
+		assertEquals("shall_include", t.predicate);
+	}
+	
+	@Test
 	public void testRDF() throws Exception {
 		RDFGenerator gen = new RDFGenerator();
 		Collection<Triple> triples = new ArrayList<Triple>();
 		
-		Triple t = Triple.broader("blue dragons", "dragons");
+		Triple t = Triple.lii("people", "pizza", "eat");
+		triples.add(t);
+		t = Triple.lii("people", "hamburgers", "eat");
+		triples.add(t);
+		t = Triple.broader("blue dragons", "dragons");
 		triples.add(t);
 		
 		gen.buildModel(triples);
-		gen.writeTo("/tmp/hello.rdf");
-		System.out.println(gen);
+		gen.writeTo("/tmp/test_RDF.rdf");
 	}
 
 }

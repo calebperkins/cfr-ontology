@@ -6,7 +6,6 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
 public class SKOS {
 
 	public static String URI = "http://www.w3.org/2004/02/skos/core#";
-	public static String LII_URI = "http://liicornell.org/liivoc/";
 
 	protected static final Property property(String local) {
 		return ResourceFactory.createProperty(URI, local);

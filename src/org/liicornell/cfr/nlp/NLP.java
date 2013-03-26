@@ -166,6 +166,12 @@ public class NLP {
 		}
 
 	}
+	
+	public Set<Triple> generateTriples(String text) {
+		Set<Triple> triples = new HashSet<Triple>();
+		new TripleGenerator(triples, text).run();
+		return triples;
+	}
 
 	public String resolvePronouns(String text) {
 		StringBuilder sb = new StringBuilder();
@@ -200,13 +206,13 @@ public class NLP {
 		return sb.toString();
 	}
 	
-	private String[] getSentences(String text) {
+	public String[] getSentences(String text) {
 		synchronized (sentenceDetector) {
 			return sentenceDetector.sentDetect(text);
 		}
 	}
 	
-	private Span[][] getTokens(String[] sentences) {
+	public Span[][] getTokens(String[] sentences) {
 		Span[][] tokens = new Span[sentences.length][];
 		synchronized (tokenizer) {
 			for (int i = 0; i < tokens.length; i++) {
@@ -214,14 +220,6 @@ public class NLP {
 			}
 		}
 		return tokens;
-	}
-
-	public Set<Triple> generateTriples(String text) {
-		Set<Triple> triples = new HashSet<Triple>();
-		String[] s = getSentences(text);
-		Span[][] tokens = getTokens(s);
-		new TripleGenerator(triples, s, tokens).run();
-		return triples;
 	}
 
 }

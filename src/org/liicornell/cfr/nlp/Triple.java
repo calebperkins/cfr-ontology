@@ -10,9 +10,13 @@ public class Triple {
 	public static final String RELATED = "skos:related";
 	
 	private Triple(String subject, String object, String predicate) {
-		this.subject = subject.trim();
-		this.object = object.trim();
-		this.predicate = predicate;
+		this.subject = format(subject);
+		this.object = format(object);
+		this.predicate = format(predicate);
+	}
+	
+	public static String format(String s) {
+		return s.trim().replace(" ", "_").replace('Ñ', '_').replace(",", "").replace("(", "").replace(")", "").toLowerCase().trim();
 	}
 	
 	@Override
@@ -33,7 +37,7 @@ public class Triple {
 	}
 	
 	public static Triple lii(String subject, String object, String predicate) {
-		return new Triple(subject, object, "liivoc:" + predicate);
+		return new Triple(subject, object, predicate);
 	}
 	
 	public Triple inversion() {
