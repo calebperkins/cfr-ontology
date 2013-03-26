@@ -154,6 +154,17 @@ public class TripleGenerator implements Runnable {
 		}
 		return result;
 	}
+	
+	private void makeTriplesFromModifiers(List<Parse> attributes, Parse main) {
+		for (Parse a : attributes) {
+			Triple t = Triple.narrower(main.toString(), a.toString() + ' ' + main.toString());
+			Triple tt = t.inversion();
+			synchronized (triples) {
+				triples.add(t);
+				triples.add(tt);
+			}
+		}
+	}
 
 	private void getSubjectVerbObjectTriples(Parse s) {
 		Parse np = null;
@@ -190,6 +201,13 @@ public class TripleGenerator implements Runnable {
 		}
 		if (object == null)
 			return;
+		
+		List<Parse> s_att = getAttributes(subject);
+		makeTriplesFromModifiers(s_att, subject);
+		List<Parse> v_att = getAttributes(verb);
+		makeTriplesFromModifiers(v_att, verb);
+		List<Parse> o_att = getAttributes(object);
+		makeTriplesFromModifiers(o_att, object);
 
 		Triple t = Triple.lii(subject.toString(), object.toString(), verb.toString());
 		if (t.predicate.isEmpty())
@@ -209,7 +227,55 @@ public class TripleGenerator implements Runnable {
 		}
 		return null;
 	}
+	
+	private static List<Parse> getAttributes(Parse word) {
+		List<Parse> result = new ArrayList<Parse>();
+		
+		// search siblings
+		Parse[] sibilings = word.getParent().getChildren();
+		
+		if (isAdjective(word)) {
+			for (Parse s : sibilings) {
+				if (is(s, "RB")) {
+					result.add(s);
+				}
+			}
+		} else if (isNoun(word)) {
+			for (Parse s : sibilings) {
+				if (is(s, "PRP$") || is(s, "POS") || is(s, "JJ") || is(s, "CD") || is(s, "ADJP") || is(s, "QP") || is(s, "NP")) {
+					result.add(s);
+				}
+			}
+		} else if (isVerb(word)) {
+			for (Parse s : sibilings) {
+				if (is(s, "ADVP")) {
+					result.add(s);
+				}
+			}
+		}
+		
+		// search uncles
+		Parse[] uncles = word.getParent().getParent().getChildren();
+		if (isNoun(word) || isAdjective(word)) {
+			for (Parse uncle : uncles) {
+				if (is(uncle, "PP")) {
+					result.add(uncle);
+				}
+			}
+		} else if (isVerb(word)) {
+			for (Parse uncle : uncles) {
+				if (isVerb(uncle)) {
+					result.add(uncle);
+				}
+			}
+		}
+		
+		return result;
+	}
 
+	private static boolean is(Parse p, String type) {
+		return p != null && p.getType().equals(type);
+	}
 	
 	@SuppressWarnings("unused")
 	private static void prune(Parse p) {
@@ -224,29 +290,30 @@ public class TripleGenerator implements Runnable {
 		}
 	}
 	
-	private static String processSentence(String sentence) {
+	public static String preprocessText(String text) {
 		// Remove anything in <>
-		sentence = sentence.replaceAll("\\<.*?\\>", "");
+		text = text.replaceAll("\\<.*?\\>", "");
 		// Remove and\or and/or
-		sentence = sentence.replace("and/or", "or");
-		sentence = sentence.replace("and\\or", "or");
-		sentence = sentence.replaceAll("\n", "");
-		sentence = sentence.replaceAll("( )+", " ");
-		sentence = sentence.replaceAll("§", "Section");
-		sentence = sentence.replaceAll(";", ".");
-		sentence = sentence.replaceAll(":", ".");
-		// Remove numbers
-		sentence = sentence.replaceAll("\\d*(\\.)*\\d*", "");
+		text = text.replace("and/or", "or");
+		text = text.replace("and\\or", "or");
+		text = text.replaceAll("\n", "");
+		text = text.replaceAll("( )+", " ");
+		text = text.replaceAll("§|¤", "Section");
+		text = text.replaceAll(";|:", ".");
+		
+		text = text.replaceAll("\\(.*\\)", ""); // Remove (X) and ()
+		text = text.replaceAll("\\d+(\\.*)", ""); // Remove numbers
+		
 		// Replace oxford comma
-		sentence = sentence.replaceAll(", or", " or");
-		sentence = sentence.replaceAll(", and", " and");
-		sentence = sentence + ".";
-		return sentence;
+		text = text.replaceAll(", or", " or");
+		text = text.replaceAll(", and", " and");
+		text = text + ".";
+		return text;
 	}
 
 	@Override
 	public void run() {
-		text = processSentence(text);
+		text = preprocessText(text);
 		sentences = NLP.getInstance().getSentences(text);
 		tokens = NLP.getInstance().getTokens(sentences);
 		for (int i = 0; i < sentences.length; i++) {

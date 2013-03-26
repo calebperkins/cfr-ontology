@@ -9,6 +9,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.liicornell.cfr.nlp.NLP;
 import org.liicornell.cfr.nlp.Triple;
+import org.liicornell.cfr.nlp.TripleGenerator;
 import org.liicornell.cfr.runner.RDFGenerator;
 
 public class NLPTest {
@@ -22,6 +23,12 @@ public class NLPTest {
 		}
 		assertFalse(triples.isEmpty());
 		assertTrue(triples.contains(Triple.narrower("material", "reference material")));
+	}
+	
+	@Test
+	public void testSentenceFormatting() {
+		String text = " Agencies of USDA shall comply with the time limits set forth in the FOIA and in this subpart for responding to and processing requests and appeals for agency records, unless there are unusual circumstances within the meaning of <aref type=\"USC\">\n                            <subref title=\"5\" sect=\"552\" note=\"\" psec=\"#a_6_B\" tq=\"N\" target=\"http://www.law.cornell.edu/uscode/5/552.html#a_6_B\">5 U.S.C. 552(a)(6)(B)</subref>\n                        </aref> and <aref type=\"CFR-TIC-SECT\">\u00a7 <subref title=\"7\" part=\"1\" sect=\"16\" psec=\"#b\" tq=\"N\">1.16(b)</subref>\n                        </aref>. An agency shall notify a requester in writing whenever it is unable to respond to or process a request or appeal within the time limits established by the FOIA.";
+		System.out.println(TripleGenerator.preprocessText(text));	
 	}
 	
 	@Test
