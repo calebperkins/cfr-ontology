@@ -277,19 +277,6 @@ public class TripleGenerator implements Runnable {
 		return p != null && p.getType().equals(type);
 	}
 	
-	@SuppressWarnings("unused")
-	private static void prune(Parse p) {
-		for (Parse c : p.getChildren()) {
-			if (c.getType().equals("DT")) {
-				p.remove(p.indexOf(c));
-			}
-		}
-
-		for (Parse c : p.getChildren()) {
-			prune(c);
-		}
-	}
-	
 	public static String preprocessText(String text) {
 		// Remove anything in <>
 		text = text.replaceAll("\\<.*?\\>", "");
@@ -307,7 +294,6 @@ public class TripleGenerator implements Runnable {
 		// Replace oxford comma
 		text = text.replaceAll(", or", " or");
 		text = text.replaceAll(", and", " and");
-		text = text + ".";
 		return text;
 	}
 
@@ -321,15 +307,13 @@ public class TripleGenerator implements Runnable {
 			Span[] spans = tokens[i];
 			Parse[] parses = NLP.getInstance().parseSentence(sentence, spans, 2);
 			
-//			System.out.println(sentence);
-
 			for (Parse p : parses) {
-				if (!p.getChildren()[0].getType().equals("S"))
+				if (!is(p.getChildren()[0], "S"))
 					continue;
 				
-//				prune(p);
 //				p.show();
 				traverse(p);
+				break;
 			}
 		}
 

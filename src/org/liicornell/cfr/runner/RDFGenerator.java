@@ -23,7 +23,7 @@ public class RDFGenerator {
 	public RDFGenerator() {
 		model = ModelFactory.createDefaultModel();
 		model.setNsPrefix("liivoc", LII_URI);
-		model.setNsPrefix("skos", SKOS.URI); 
+		model.setNsPrefix("skos", SKOS.URI);
 	}
 
 	public void buildModel(Collection<Triple> triples) {
@@ -34,7 +34,7 @@ public class RDFGenerator {
 			add(t);
 		}
 	}
-	
+
 	public void writeTo(String fileName) throws IOException {
 		model.write(new FileOutputStream(fileName));
 	}
@@ -59,7 +59,7 @@ public class RDFGenerator {
 		if (predicate.equals(Triple.RELATED))
 			return SKOS.related;
 		createPredicateDescription(predicate);
-		return model.createProperty(LII_URI, predicate.replace(" ", "_"));
+		return model.createProperty(LII_URI, toURI(predicate));
 	}
 
 	private void createPredicateDescription(String predicate) {
@@ -70,10 +70,21 @@ public class RDFGenerator {
 	}
 
 	private Resource liiResource(String s) {
-		s = s.replace(" ", "_");
-		return model.createResource(LII_URI + s);
+		return model.createResource(LII_URI + toURI(s));
 	}
-	
+
+	/**
+	 * Make a valid URI from a string. Use this when you want to preserve
+	 * certain information, like spaces, but have a valid resource URI.
+	 * 
+	 * @param s
+	 *            a string with most garbage already removed
+	 * @return a hopefully valid URI
+	 */
+	private static String toURI(String s) {
+		return s.replace(" ", "_");
+	}
+
 	@Override
 	public String toString() {
 		return model.toString();
