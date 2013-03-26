@@ -113,10 +113,8 @@ public class NLP {
 
 		for (int idx = 0; idx < tokens.length; idx++) {
 			final Span tok = tokens[idx];
-			// find the index of the current token
-			final int start = tok.getStart();
 			// flesh out the parse with token sub-parses
-			p.insert(new Parse(text, new Span(start, start + tok.length()), AbstractBottomUpParser.TOK_NODE, 0, idx));
+			p.insert(new Parse(text, tok, AbstractBottomUpParser.TOK_NODE, 0, idx));
 		}
 		synchronized (parser) {
 			return parser.parse(p, n);
