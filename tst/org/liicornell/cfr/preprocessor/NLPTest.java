@@ -51,7 +51,7 @@ public class NLPTest {
 	@Test
 	public void testValidTriple() {
 		Triple t = Triple.lii("states", "Florida", " (shall include) ");
-		assertEquals("shall_include", t.predicate);
+		assertEquals("shall include", t.predicate);
 	}
 	
 	@Test
@@ -59,9 +59,9 @@ public class NLPTest {
 		RDFGenerator gen = new RDFGenerator();
 		Collection<Triple> triples = new ArrayList<Triple>();
 		
-		Triple t = Triple.lii("people", "pizza", "eat");
+		Triple t = Triple.lii("people", "pizza", "eat many");
 		triples.add(t);
-		t = Triple.lii("people", "hamburgers", "eat");
+		t = Triple.lii("people", "hamburgers", "eat many");
 		triples.add(t);
 		t = Triple.broader("blue dragons", "dragons");
 		triples.add(t);

@@ -31,7 +31,7 @@ public class Preprocessor extends Configured implements Tool {
 				.newInstance();
 
 		private final Set<String> agenciesToRemove = new HashSet<String>();
-		private boolean resolvePronouns = false;;
+		private boolean resolvePronouns = false;
 		private final Text outValue = new Text();
 
 		private static String extractSentence(String document)

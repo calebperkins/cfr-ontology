@@ -59,7 +59,7 @@ public class RDFGenerator {
 		if (predicate.equals(Triple.RELATED))
 			return SKOS.related;
 		createPredicateDescription(predicate);
-		return model.createProperty(LII_URI, predicate);
+		return model.createProperty(LII_URI, predicate.replace(" ", "_"));
 	}
 
 	private void createPredicateDescription(String predicate) {
@@ -70,6 +70,7 @@ public class RDFGenerator {
 	}
 
 	private Resource liiResource(String s) {
+		s = s.replace(" ", "_");
 		return model.createResource(LII_URI + s);
 	}
 	
