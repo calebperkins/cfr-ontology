@@ -16,7 +16,7 @@ public class Triple {
 	}
 	
 	public static String format(String s) {
-		return s.replace('Ñ', '_').replace(",", "").replace("(", "").replace(")", "").toLowerCase().trim();
+		return s.replace('Ñ', '_').replaceAll(",|\\(|\\)", "").toLowerCase().trim();
 	}
 	
 	@Override
