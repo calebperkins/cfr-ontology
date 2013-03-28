@@ -294,6 +294,11 @@ public class TripleGenerator implements Runnable {
 		// Replace oxford comma
 		text = text.replaceAll(", or", " or");
 		text = text.replaceAll(", and", " and");
+		
+		for (String agency : NLP.agenciesToRemove) {
+			text = text.replaceAll(agency, "Agency");
+		}
+		
 		return text;
 	}
 

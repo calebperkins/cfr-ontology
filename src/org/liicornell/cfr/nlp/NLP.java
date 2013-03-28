@@ -1,9 +1,12 @@
 package org.liicornell.cfr.nlp;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,10 +41,12 @@ import opennlp.tools.util.Span;
 public class NLP {
 	private static NLP instance;
 
-	final static TokenizerModel tokenModel;
-	final static SentenceModel sentenceModel;
-	final static ParserModel parseModel;
-	final static POSModel posModel;
+	private final static TokenizerModel tokenModel;
+	private final static SentenceModel sentenceModel;
+	private final static ParserModel parseModel;
+	private final static POSModel posModel;
+	
+	public static final Collection<String> agenciesToRemove = new ArrayList<String>();
 
 	public final SentenceDetector sentenceDetector;
 	public final Tokenizer tokenizer;
@@ -73,6 +78,14 @@ public class NLP {
 					"/Users/caleb/Documents/LII/Workspace/WithHadoop/datasets/en-pos-maxent.bin");
 			posModel = new POSModel(modelIn);
 			modelIn.close();
+			
+			// Agency file
+			BufferedReader fis = new BufferedReader(new FileReader("/Users/caleb/Documents/LII/Workspace/WithHadoop/datasets/agencies.txt"));
+			String agency = null;
+			while ((agency = fis.readLine()) != null) {
+				agenciesToRemove.add(agency);
+			}
+			fis.close();
 			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
