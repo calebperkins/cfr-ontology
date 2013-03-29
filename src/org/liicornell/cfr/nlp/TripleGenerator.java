@@ -33,44 +33,43 @@ public class TripleGenerator implements Runnable {
 		return null;
 	}
 
-	private static boolean isModifier(Parse p) {
-		return isNoun(p) || isAdjective(p);
-	}
-
-	private void findNarrowerTriples(Parse np) {
-		final int n = np.getChildCount();
-		final Parse[] children = np.getChildren();
-		Parse main = children[n - 1];
-		for (int i = 0; i < n - 1; i++) {
-			Parse child = children[i];
-			if (isModifier(child)) {
-				Triple t = Triple.narrower(main.toString(), child.toString() + ' ' + main.toString());
-				Triple tt = t.inversion();
-				synchronized (triples) {
-					triples.add(t);
-					triples.add(tt);
-				}
+	private void findNarrowerAndBroaderTriplesFromNP(Parse np) {
+		// we only care about leaf NP
+		for (Parse c : np.getChildren()) {
+			if (!(isNoun(c) || is(c, "DT"))) {
+				return;
 			}
 		}
-	}
-
-	private static Parse collapse(Parse p) {
-		if (p == null)
-			return null;
-		for (Parse kid : p.getChildren()) {
-			if (kid.getType().equals("NP"))
-				return collapse(kid);
+		
+		Parse[] children = np.getChildren();
+		Parse main = children[children.length - 1];
+		for (int i = 0; i < children.length - 1; i++) {
+			Parse c = children[i];
+			if (!isNoun(c))
+				continue;
+			Triple t = Triple.narrower(main.toString(), c.toString() + ' ' + main.toString());
+			Triple tt = t.inversion();
+			synchronized (triples) {
+				triples.add(tt);
+				triples.add(t);
+			}
 		}
-		return p;
+		
 	}
 
-	private void findRelatedTriples(Parse p) {
-		Parse parent = p.getParent();
+	private void findRelatedTriples(Parse cc) {
+		Parse parent = cc.getParent();
+//		parent.show();
 		List<Parse> related = new ArrayList<Parse>();
 		for (Parse sibiling : parent.getChildren()) {
-			sibiling = collapse(sibiling);
 			if (isNoun(sibiling)) {
 				related.add(sibiling);
+			}
+			else if (is(sibiling, "NP")) {
+				Parse n = getNounGroupFromNP(sibiling);
+				if (n != null) {
+					related.add(n);
+				}
 			}
 		}
 		for (Parse a : related) {
@@ -103,6 +102,25 @@ public class TripleGenerator implements Runnable {
 		}
 		return null;
 	}
+	
+	private static Parse getNounGroupFromNP(Parse root) {
+		if (isNoun(root))
+			return root;
+		boolean all_nouns = true;
+		for (Parse c : root.getChildren()) {
+			if (!isNoun(c)) {
+				all_nouns = false;
+			}
+		}
+		if (all_nouns)
+			return root;
+		for (Parse c : root.getChildren()) {
+			Parse v = getFirstNoun(c);
+			if (v != null)
+				return v;
+		}
+		return null;
+	}
 
 	private static Parse getFirstAdjective(Parse root) {
 		if (isAdjective(root))
@@ -120,11 +138,12 @@ public class TripleGenerator implements Runnable {
 	}
 
 	private void traverse(Parse p) {
-		if (p.getType().equals("NP")) {
-			findNarrowerTriples(p);
-		} else if (p.getType().equals("CC")) {
+//		p.show();
+		if (is(p, "NP")) {
+			findNarrowerAndBroaderTriplesFromNP(p);
+		} else if (is(p, "CC")) {
 			findRelatedTriples(p);
-		} else if (p.getType().equals("S")) {
+		} else if (is(p, "S")) {
 			getSubjectVerbObjectTriples(p);
 		}
 
@@ -315,7 +334,6 @@ public class TripleGenerator implements Runnable {
 			for (Parse p : parses) {
 				if (!is(p.getChildren()[0], "S"))
 					continue;
-				
 //				p.show();
 				traverse(p);
 				break;

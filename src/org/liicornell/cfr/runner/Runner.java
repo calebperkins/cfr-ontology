@@ -40,6 +40,7 @@ public class Runner {
 		// wait for threads to finish and build RDF file
 		pool.shutdown();
 		pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		
 		rdfGenerator.buildModel(triples);
 		rdfGenerator.writeTo(output);
 	}

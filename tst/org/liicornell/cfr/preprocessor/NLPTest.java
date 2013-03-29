@@ -22,6 +22,10 @@ public class NLPTest {
 			System.out.println(triple);
 		}
 		assertFalse(triples.isEmpty());
+		
+		assertTrue(triples.contains(Triple.related("reference material", "guide")));
+		assertTrue(triples.contains(Triple.related("records", "information")));
+		
 		assertTrue(triples.contains(Triple.narrower("material", "reference material")));
 	}
 	
@@ -29,9 +33,7 @@ public class NLPTest {
 	public void testX() {
 		String text = " As soon as practicable after the close of the hearing and after consideration of any timely objections filed as to the transcript or recording, the Judge shall issue an order making any corrections to the transcript or recording which the Judge finds are warranted, which corrections shall be entered onto the original transcript or recording by the Hearing Clerk (without obscuring the original text).";
 		Set<Triple> triples = NLP.getInstance().generateTriples(text);
-		for (Triple triple : triples) {
-			System.out.println(triple);
-		}
+		System.out.println(triples);
 	}
 	
 	@Test
@@ -44,16 +46,15 @@ public class NLPTest {
 	public void testSimpleVerbGeneration() {
 		String text = "A rare black squirrel has become a regular visitor to a suburban garden.";
 		Set<Triple> triples = NLP.getInstance().generateTriples(text);
-		for (Triple triple : triples) {
-			System.out.println(triple);
-		}
+		System.out.println(triples);
 		assertTrue(triples.contains(Triple.lii("squirrel", "visitor", "become")));
-		
-		text = "The quick brown fox jumps over the lazy dog.";
-		triples = NLP.getInstance().generateTriples(text);
-		for (Triple triple : triples) {
-			System.out.println(triple);
-		}
+	}
+	
+	@Test
+	public void testMoreSimpleVerbGeneration() {
+		String text = "The quick brown fox jumps over the lazy dog.";
+		Set<Triple> triples = NLP.getInstance().generateTriples(text);
+		System.out.println(triples);
 		assertTrue(triples.contains(Triple.lii("fox", "dog", "jumps")));
 	}
 	
