@@ -1,5 +1,6 @@
 package org.liicornell.cfr.runner;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
@@ -28,7 +29,7 @@ public class RDFGenerator {
 
 	public void buildModel(Collection<Triple> triples) {
 		for (Triple t : triples) {
-			if (t.subject.contains("%") || t.object.contains("%") || t.predicate.contains("%")) {
+			if (t.subject.length() <= 2 || t.predicate.length() <= 2 || t.object.length() <= 2) {
 				continue;
 			}
 			add(t);
@@ -38,10 +39,16 @@ public class RDFGenerator {
 	public void writeTo(String fileName) throws IOException {
 		model.write(new FileOutputStream(fileName));
 	}
+	
+	public void writeTo(File file) throws IOException {
+		model.write(new FileOutputStream(file));
+	}
 
 	private void add(Triple t) {
 		Resource sub = liiResource(t.subject);
+		if (sub == null) return;
 		Resource obj = liiResource(t.object);
+		if (obj == null) return;
 
 		obj.addProperty(SKOS.prefLabel, t.object);
 		obj.addProperty(RDFS.label, t.object);
@@ -70,6 +77,9 @@ public class RDFGenerator {
 	}
 
 	private Resource liiResource(String s) {
+		String uri = toURI(s);
+		if (uri.isEmpty())
+			return null;
 		return model.createResource(LII_URI + toURI(s));
 	}
 
@@ -82,7 +92,7 @@ public class RDFGenerator {
 	 * @return a hopefully valid URI
 	 */
 	private static String toURI(String s) {
-		return s.replace(" ", "_");
+		return s.replace(" ", "_").replace("%", "").replace("$", "");
 	}
 
 	@Override
