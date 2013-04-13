@@ -92,7 +92,7 @@ public class RDFGenerator {
 	 * @return a hopefully valid URI
 	 */
 	private static String toURI(String s) {
-		return s.replace(" ", "_").replace("%", "").replace("$", "");
+		return s.replace(" ", "_").replaceAll("%|\\$|#|\\]|\\[", "");
 	}
 
 	@Override

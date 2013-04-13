@@ -17,7 +17,8 @@ import org.liicornell.cfr.nlp.TripleGenerator;
 public class Runner {
 	
 	private static void processFile(SAXBuilder builder, ElementFilter filter, File f, File out) throws Exception {
-		ExecutorService pool = Executors.newFixedThreadPool(7);
+		int threads = Runtime.getRuntime().availableProcessors();
+		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		Document doc = builder.build(f);
 		Element rootNode = doc.getRootElement();
 		
@@ -28,6 +29,10 @@ public class Runner {
 		for (Element c : rootNode.getDescendants(filter)) {
 			pool.execute(new TripleGenerator(triples, c.getText()));
 		}
+		
+//		for (Triple triple : triples) {
+//			System.out.println(triple);
+//		}
 		
 		// wait for threads to finish and build RDF file
 		pool.shutdown();
@@ -51,7 +56,7 @@ public class Runner {
 		if (input.isDirectory()) {
 			for (File in : input.listFiles()) {
 				System.out.println("Processing " + in);
-				File out = new File(output, in.getName());
+				File out = new File(output, in.getName() + ".rdf");
 				try {
 					processFile(builder, filter, in, out);
 				} catch (Exception ex) {

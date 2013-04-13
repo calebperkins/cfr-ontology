@@ -310,6 +310,8 @@ public class TripleGenerator implements Runnable {
 		text = text.replaceAll("\\(.*\\)", ""); // Remove (X) and ()
 		text = text.replaceAll("\\d+(\\.*)", ""); // Remove numbers
 		
+		text = text.replaceAll("Ò|Ó", "\"");
+		
 		// Replace oxford comma
 		text = text.replaceAll(", or", " or");
 		text = text.replaceAll(", and", " and");
@@ -324,6 +326,7 @@ public class TripleGenerator implements Runnable {
 	@Override
 	public void run() {
 		text = preprocessText(text);
+		System.out.println(text);
 		sentences = NLP.getInstance().getSentences(text);
 		tokens = NLP.getInstance().getTokens(sentences);
 		for (int i = 0; i < sentences.length; i++) {
