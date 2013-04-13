@@ -1,7 +1,9 @@
 package org.liicornell.cfr.nlp;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -57,30 +59,28 @@ public class NLP {
 	static {
 		try {
 			// tokens
-			InputStream modelIn = new FileInputStream(
-					"/Users/caleb/Documents/LII/Workspace/WithHadoop/datasets/en-token.bin");
+			InputStream modelIn = getModel("en-token.bin");
 			tokenModel = new TokenizerModel(modelIn);
 			modelIn.close();
 
 			// sentence model
-			modelIn = new FileInputStream("/Users/caleb/Documents/LII/Workspace/WithHadoop/datasets/en-sent.bin");
+			modelIn = getModel("en-sent.bin");
 			sentenceModel = new SentenceModel(modelIn);
 			modelIn.close();
 
 			// parser
-			modelIn = new FileInputStream(
-					"/Users/caleb/Documents/LII/Workspace/WithHadoop/datasets/en-parser-chunking.bin");
+			modelIn = getModel("en-parser-chunking.bin");
 			parseModel = new ParserModel(modelIn);
 			modelIn.close();
 			
 			// pos
-			modelIn = new FileInputStream(
-					"/Users/caleb/Documents/LII/Workspace/WithHadoop/datasets/en-pos-maxent.bin");
+			modelIn = getModel("en-pos-maxent.bin");
 			posModel = new POSModel(modelIn);
 			modelIn.close();
 			
 			// Agency file
-			BufferedReader fis = new BufferedReader(new FileReader("/Users/caleb/Documents/LII/Workspace/WithHadoop/datasets/agencies.txt"));
+			File agencies = new File(System.getProperty("cornell.datasets.dir"), "agencies.txt");
+			BufferedReader fis = new BufferedReader(new FileReader(agencies));
 			String agency = null;
 			while ((agency = fis.readLine()) != null) {
 				agenciesToRemove.add(agency);
@@ -90,6 +90,12 @@ public class NLP {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	private static InputStream getModel(String fileName) throws FileNotFoundException {
+		String dir = System.getProperty("cornell.datasets.dir");
+		File in = new File(dir, fileName);
+		return new FileInputStream(in);
 	}
 
 	public static synchronized NLP getInstance() {
