@@ -11,8 +11,9 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.ElementFilter;
 import org.jdom2.input.SAXBuilder;
-import org.liicornell.cfr.nlp.Triple;
-import org.liicornell.cfr.nlp.TripleGenerator;
+import org.liicornell.cfr.corenlp.TripleGenerator;
+import org.liicornell.cfr.rdf.RDFGenerator;
+import org.liicornell.cfr.rdf.Triple;
 
 public class Runner {
 	
@@ -20,9 +21,8 @@ public class Runner {
 		int threads = Runtime.getRuntime().availableProcessors();
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		Document doc = builder.build(f);
-		Element rootNode = doc.getRootElement();
+		Element rootNode = doc.getRootElement();		
 		
-		RDFGenerator rdfGenerator = new RDFGenerator();
 		Set<Triple> triples = new HashSet<Triple>();
 		
 		// each text tag is processed separately
@@ -38,6 +38,7 @@ public class Runner {
 		pool.shutdown();
 		pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		
+		RDFGenerator rdfGenerator = new RDFGenerator();
 		rdfGenerator.buildModel(triples);
 		rdfGenerator.writeTo(out);
 	}
