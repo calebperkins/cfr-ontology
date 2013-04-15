@@ -50,7 +50,7 @@ public class TripleGenerator implements Runnable {
 			if (node.equals(verbNode)) {
 				foundVerb = true;
 			}
-			if (foundVerb == true && isNoun(node.label().tag())) {
+			if (foundVerb && isNoun(node.label().tag())) {
 				return node;
 			}
 		}
@@ -239,7 +239,7 @@ public class TripleGenerator implements Runnable {
 		}
 	}
 
-	// FInd consecutive nouns after the first noun after the verb
+	// Find consecutive nouns after the first noun after the verb
 	private String findObjectString(TreeGraphNode objectNode) {
 
 		List<TreeGraphNode> nodeArrayList = new ArrayList<TreeGraphNode>();
@@ -257,14 +257,13 @@ public class TripleGenerator implements Runnable {
 							.parseInt(node2.toString().split("-")[1]);
 					return no1.compareTo(no2);
 				} catch (Exception e) {
-					// e.printStackTrace();
 					return -1;
 				}
 
 			}
 		});
 		boolean foundObject = false;
-		String objectSTring = "";
+		String objectString = "";
 		for (TreeGraphNode node : nodeArrayList) {
 			if (node.equals(objectNode)) {
 				foundObject = true;
@@ -272,15 +271,15 @@ public class TripleGenerator implements Runnable {
 			}
 			if (foundObject == true
 					&& (isNoun(node.label().tag()) || (isAdj(node.label().tag())))) {
-				objectSTring += " " + node.nodeString();
+				objectString += " " + node.nodeString();
 			}
 			if (foundObject == true
 					&& !(isNoun(node.label().tag()) || (isAdj(node.label()
 							.tag())))) {
-				return objectSTring;
+				return objectString;
 			}
 		}
-		return objectSTring;
+		return objectString;
 	}
 
 	private static String getFullyQualifiedVerb(TreeGraphNode node) {
