@@ -1,4 +1,4 @@
-package org.liicornell.cfr.corenlp;
+package org.liicornell.cfr.opennlp;
 
 import java.io.BufferedReader;
 import java.io.File;

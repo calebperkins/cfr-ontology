@@ -7,8 +7,8 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.junit.Test;
-import org.liicornell.cfr.corenlp.NLP;
-import org.liicornell.cfr.corenlp.TripleGenerator;
+import org.liicornell.cfr.opennlp.NLP;
+import org.liicornell.cfr.opennlp.TripleGenerator;
 import org.liicornell.cfr.rdf.RDFGenerator;
 import org.liicornell.cfr.rdf.Triple;
 

@@ -11,7 +11,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.ElementFilter;
 import org.jdom2.input.SAXBuilder;
-import org.liicornell.cfr.corenlp.TripleGenerator;
+import org.liicornell.cfr.opennlp.TripleGenerator;
 import org.liicornell.cfr.rdf.RDFGenerator;
 import org.liicornell.cfr.rdf.Triple;
 
