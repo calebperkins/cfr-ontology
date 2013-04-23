@@ -11,23 +11,23 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.ElementFilter;
 import org.jdom2.input.SAXBuilder;
-import org.liicornell.cfr.opennlp.TripleGenerator;
+import org.liicornell.cfr.corenlp.StanfordTripleGenerator;
 import org.liicornell.cfr.rdf.RDFGenerator;
 import org.liicornell.cfr.rdf.Triple;
 
 public class Runner {
 	
-	private static void processFile(SAXBuilder builder, ElementFilter filter, File f, File out) throws Exception {
+	private static void processFile(SAXBuilder builder, ElementFilter filter, File in, File out) throws Exception {
 		int threads = Runtime.getRuntime().availableProcessors();
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
-		Document doc = builder.build(f);
+		Document doc = builder.build(in);
 		Element rootNode = doc.getRootElement();		
 		
 		Set<Triple> triples = new HashSet<Triple>();
 		
 		// each text tag is processed separately
 		for (Element c : rootNode.getDescendants(filter)) {
-			pool.execute(new TripleGenerator(triples, c.getText()));
+			pool.execute(new StanfordTripleGenerator(triples, c.getText()));
 		}
 		
 //		for (Triple triple : triples) {

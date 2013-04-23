@@ -9,13 +9,13 @@ import org.liicornell.cfr.rdf.Triple;
 import opennlp.tools.parser.Parse;
 import opennlp.tools.util.Span;
 
-public class TripleGenerator implements Runnable {
+public class OpenNLPTripleGenerator implements Runnable {
 	private final Set<Triple> triples;
 	private String[] sentences;
 	private Span[][] tokens;
 	private String text;
 
-	public TripleGenerator(Set<Triple> triples, String t) {
+	public OpenNLPTripleGenerator(Set<Triple> triples, String t) {
 		this.triples = triples;
 		text = t;
 	}
@@ -38,7 +38,7 @@ public class TripleGenerator implements Runnable {
 	private void findNarrowerAndBroaderTriplesFromNP(Parse np) {
 		// we only care about leaf NP
 		for (Parse c : np.getChildren()) {
-			if (!(isNoun(c) || is(c, "DT"))) {
+			if (is(c, "NP")) {
 				return;
 			}
 		}
@@ -318,7 +318,7 @@ public class TripleGenerator implements Runnable {
 		text = text.replaceAll(", or", " or");
 		text = text.replaceAll(", and", " and");
 		
-		for (String agency : NLP.agenciesToRemove) {
+		for (String agency : OpenNLPPipeline.agenciesToRemove) {
 			text = text.replaceAll(agency, "Agency");
 		}
 		
@@ -328,18 +328,18 @@ public class TripleGenerator implements Runnable {
 	@Override
 	public void run() {
 		text = preprocessText(text);
-		System.out.println(text);
-		sentences = NLP.getInstance().getSentences(text);
-		tokens = NLP.getInstance().getTokens(sentences);
+		sentences = OpenNLPPipeline.getInstance().getSentences(text);
+		tokens = OpenNLPPipeline.getInstance().getTokens(sentences);
 		for (int i = 0; i < sentences.length; i++) {
 			String sentence = sentences[i];
 			Span[] spans = tokens[i];
-			Parse[] parses = NLP.getInstance().parseSentence(sentence, spans, 2);
+			Parse[] parses = OpenNLPPipeline.getInstance().parseSentence(sentence, spans, 2);
 			
 			for (Parse p : parses) {
 				if (!is(p.getChildren()[0], "S"))
 					continue;
-//				p.show();
+				System.out.println(sentence);
+				p.show();
 				traverse(p);
 				break;
 			}

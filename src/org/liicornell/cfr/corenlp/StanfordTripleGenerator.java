@@ -1,5 +1,7 @@
 package org.liicornell.cfr.corenlp;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,16 +15,19 @@ import java.util.Set;
 
 import org.liicornell.cfr.rdf.Triple;
 
+import edu.stanford.nlp.ling.HasWord;
+import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.trees.EnglishGrammaticalRelations;
 import edu.stanford.nlp.trees.GrammaticalStructure;
 import edu.stanford.nlp.trees.TreeGraphNode;
 import edu.stanford.nlp.trees.TypedDependency;
 
-public class TripleGenerator implements Runnable {
-	private final List<TypedDependency> tdl;
+public class StanfordTripleGenerator implements Runnable {
+	private List<TypedDependency> tdl;
 	private final Set<Triple> triples;
-	private final Collection<TreeGraphNode> nodes;
-	
+	private Collection<TreeGraphNode> nodes;
+	private String text;
+
 //	private final Map<TreeGraphNode, List<String>> predicateSubPropertyMap = new HashMap<TreeGraphNode, List<String>>();
 	private final Map<TreeGraphNode, List<String>> vocabMap = new HashMap<TreeGraphNode, List<String>>();
 	private final Map<TreeGraphNode, List<TreeGraphNode>> nSubjMap = new HashMap<TreeGraphNode, List<TreeGraphNode>>();
@@ -33,15 +38,17 @@ public class TripleGenerator implements Runnable {
 
 	private static Set<String> stopWords = new HashSet<String>();
 
-	public TripleGenerator(GrammaticalStructure gs, Set<Triple> triples) {
-		tdl = gs.typedDependenciesCCprocessed(true);
-		removeRomanNumerals(tdl);
-		
-		nodes = gs.getNodes();
-
+	public StanfordTripleGenerator(Set<Triple> triples, String text) {
 		this.triples = triples;
+		this.text = text;
 	}
-	
+
+	private boolean add(Triple t) {
+		synchronized (triples) {
+			return triples.add(t);
+		}
+	}
+
 	// Finds the noun after verb for finding object of nsubj(verb, noun)
 	private TreeGraphNode findNounAfterVerb(TreeGraphNode verbNode) {
 		boolean foundVerb = false;
@@ -72,18 +79,33 @@ public class TripleGenerator implements Runnable {
 
 	@Override
 	public void run() {
-		generateNNmap();
-		generateAModNNAdvModTriples();
-		generatePrepTriples();
+		Reader reader = new StringReader(text);
+		for (List<HasWord> sentence : new DocumentPreprocessor(reader)) {
+			if (sentence.size() > 70)
+				continue;
 
-		generateConjugateAndNegationMaps();
-		generateConjTriples();
+			GrammaticalStructure gs = StanfordPipeline.getInstance().gsf.newGrammaticalStructure(StanfordPipeline.getInstance().lp
+					.apply(sentence));
 
-		generateHearstPatternTriples();
+			tdl = gs.typedDependenciesCCprocessed(true);
+			removeRomanNumerals(tdl);
 
-		// uses predicateSubPropertyMap, nSubjMap, dObjMap
-		generateNSubjDObjHashMaps();
-		generateNSubjDobj();
+			nodes = gs.getNodes();
+
+			generateNNmap();
+			generateAModNNAdvModTriples();
+			generatePrepTriples();
+
+			generateConjugateAndNegationMaps();
+			generateConjTriples();
+
+			generateHearstPatternTriples();
+
+			// uses predicateSubPropertyMap, nSubjMap, dObjMap
+			generateNSubjDObjHashMaps();
+			generateNSubjDobj();
+		}
+
 	}
 
 	// Generate triples of the form nsubj, dObj
@@ -106,7 +128,7 @@ public class TripleGenerator implements Runnable {
 											getFullyQualifiedNoun(onode),
 											"not "
 													+ getFullyQualifiedVerb(node));
-									triples.add(triple);
+									add(triple);
 
 								}
 								if (conjMap.containsKey(onode)) {
@@ -116,14 +138,14 @@ public class TripleGenerator implements Runnable {
 													.get(onode)),
 											"not "
 													+ getFullyQualifiedVerb(node));
-									triples.add(triple);
+									add(triple);
 
 								}
 								Triple triple = Triple.lii(
 										getFullyQualifiedNoun(snode),
 										getFullyQualifiedNoun(onode), "not "
 												+ getFullyQualifiedVerb(node));
-								triples.add(triple);
+								add(triple);
 							}
 						}
 				} else {
@@ -136,7 +158,7 @@ public class TripleGenerator implements Runnable {
 													.get(snode)),
 											getFullyQualifiedNoun(onode),
 											getFullyQualifiedVerb(node));
-									triples.add(triple);
+									add(triple);
 
 								}
 								if (conjMap.containsKey(onode)) {
@@ -145,14 +167,14 @@ public class TripleGenerator implements Runnable {
 											getFullyQualifiedNoun(conjMap
 													.get(onode)),
 											getFullyQualifiedVerb(node));
-									triples.add(triple);
+									add(triple);
 
 								}
 								Triple triple = Triple.lii(
 										getFullyQualifiedNoun(snode),
 										getFullyQualifiedNoun(onode),
 										getFullyQualifiedVerb(node));
-								triples.add(triple);
+								add(triple);
 							}
 
 						}
@@ -188,7 +210,7 @@ public class TripleGenerator implements Runnable {
 											fullyqualifiedObject,
 											"not "
 													+ getFullyQualifiedVerb(node));
-										triples.add(triple);
+										add(triple);
 								}
 
 							}
@@ -201,7 +223,7 @@ public class TripleGenerator implements Runnable {
 										getFullyQualifiedNoun(snode),
 										fullyqualifiedObject, "not "
 												+ getFullyQualifiedVerb(node));
-									triples.add(triple);
+									add(triple);
 							}
 
 						}
@@ -217,7 +239,7 @@ public class TripleGenerator implements Runnable {
 											fullyqualifiedObject
 													+ findObjectString(object),
 											getFullyQualifiedVerb(node));
-										triples.add(triple);
+										add(triple);
 								}
 
 							}
@@ -229,7 +251,7 @@ public class TripleGenerator implements Runnable {
 										fullyqualifiedObject
 												+ findObjectString(object),
 										getFullyQualifiedVerb(node));
-									triples.add(triple);
+									add(triple);
 							}
 
 						}
@@ -339,7 +361,7 @@ public class TripleGenerator implements Runnable {
 					for (String s : subjectList) {
 						for (String o : objectList) {
 							Triple triple = Triple.narrower(s, o);
-							triples.add(triple);
+							add(triple);
 						}
 					}
 				} else if (isAdj(td1.gov().label().tag())
@@ -357,7 +379,7 @@ public class TripleGenerator implements Runnable {
 					for (String s : subjectList) {
 						for (String o : objectList) {
 							Triple triple = Triple.narrower(s, o);
-							triples.add(triple); // was commented out for some reason
+							add(triple); // was commented out for some reason
 						}
 					}
 				}
@@ -406,7 +428,7 @@ public class TripleGenerator implements Runnable {
 					|| td.reln().toString().equals("prepc_like")) {
 				Triple triple = Triple.narrower(td.gov().nodeString(), td.dep()
 						.nodeString());
-				triples.add(triple);
+				add(triple);
 			}
 		}
 
@@ -435,7 +457,7 @@ public class TripleGenerator implements Runnable {
 					for (String o : objectList) {
 						if (!(s.equals("other") || o.equals("other"))) {
 							Triple triple = Triple.related(s, o);
-							triples.add(triple);
+							add(triple);
 						}
 
 					}
@@ -481,34 +503,34 @@ public class TripleGenerator implements Runnable {
 									if (s.split(" ").length >= 3 && o.split(" ").length > 3) {
 										Triple triple = Triple.narrower(td.gov().nodeString(), td.gov().nodeString()
 												+ " " + predicate + " " + td.dep().nodeString());
-										triples.add(triple);
+										add(triple);
 
 										Triple inverseTriple = Triple.related(td.dep().nodeString(), td.gov()
 												.nodeString() + " " + predicate + " " + td.dep().nodeString());
-										triples.add(inverseTriple);
+										add(inverseTriple);
 									} else if (s.split(" ").length >= 3) {
 										Triple triple = Triple.narrower(td.gov().nodeString(), td.gov().nodeString()
 												+ " " + predicate + " " + o);
-										triples.add(triple);
+										add(triple);
 										Triple inverseTriple = Triple.related(o, td.gov().nodeString() + " "
 												+ predicate + " " + o);
 
-										triples.add(inverseTriple);
+										add(inverseTriple);
 
 									} else if (o.split(" ").length >= 3) {
 										Triple triple = Triple.narrower(s, s + " " + predicate + " "
 												+ td.dep().nodeString());
-										triples.add(triple);
+										add(triple);
 										Triple inverseTriple = Triple.related(td.dep().nodeString(), s + " "
 												+ predicate + " " + td.dep().nodeString());
 
-										triples.add(inverseTriple);
+										add(inverseTriple);
 									} else {
 										Triple triple = Triple.narrower(s, s + " " + predicate + " " + o);
-										triples.add(triple);
+										add(triple);
 										Triple inverseTriple = Triple.related(o, s + " " + predicate + " " + o);
 
-										triples.add(inverseTriple);
+										add(inverseTriple);
 
 									}
 
@@ -535,7 +557,7 @@ public class TripleGenerator implements Runnable {
 		String nounString = nnMap.containsKey(noun) ? nnMap.get(noun) : noun.nodeString();
 
 		Triple triple = Triple.narrower(nounString, adjective.nodeString() + " " + nounString);
-		triples.add(triple);
+		add(triple);
 
 		List<String> value;
 		if (vocabMap.containsKey(noun)) {
@@ -590,7 +612,7 @@ public class TripleGenerator implements Runnable {
 			TreeGraphNode noun = td.gov();
 			TreeGraphNode modifier = td.dep();
 			Triple triple = Triple.narrower(noun.nodeString(), modifier.nodeString() + " " + noun.nodeString());
-			triples.add(triple);
+			add(triple);
 
 			String modifierString = modifier.nodeString() + " " + noun.nodeString();
 			if (nnMap.containsKey(noun))
@@ -610,7 +632,7 @@ public class TripleGenerator implements Runnable {
 				nounModifierString = nounModifierString.replace(noun.nodeString(), modifierString);
 				value.add(nounModifierString);
 				triple = Triple.narrower(modifierString, nounModifierString);
-				triples.add(triple);
+				add(triple);
 			}
 		}
 	}

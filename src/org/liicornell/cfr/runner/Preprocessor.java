@@ -28,7 +28,7 @@ import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.classifier.bayes.XmlInputFormat;
-import org.liicornell.cfr.opennlp.NLP;
+import org.liicornell.cfr.opennlp.OpenNLPPipeline;
 
 public class Preprocessor extends Configured implements Tool {
 	private static class Map extends MapReduceBase implements
@@ -118,7 +118,7 @@ public class Preprocessor extends Configured implements Tool {
 			sentence = sentence + ".";
 			
 			if (resolvePronouns) {
-				sentence = NLP.getInstance().resolvePronouns(sentence);
+				sentence = OpenNLPPipeline.getInstance().resolvePronouns(sentence);
 			}
 
 			for (String agency : agenciesToRemove) {

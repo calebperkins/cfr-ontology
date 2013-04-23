@@ -42,8 +42,8 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 
-public class NLP {
-	private static NLP instance;
+public class OpenNLPPipeline {
+	private static OpenNLPPipeline instance;
 
 	private final static TokenizerModel tokenModel;
 	private final static SentenceModel sentenceModel;
@@ -101,16 +101,16 @@ public class NLP {
 		return new FileInputStream(in);
 	}
 
-	public static synchronized NLP getInstance() {
+	public static synchronized OpenNLPPipeline getInstance() {
 		if (instance == null) {
 			System.out.println("Initializing NLP pipeline...");
-			instance = new NLP();
+			instance = new OpenNLPPipeline();
 			System.out.println("Done initializing.");
 		}
 		return instance;
 	}
 
-	private NLP() {
+	private OpenNLPPipeline() {
 		sentenceDetector = new SentenceDetectorME(sentenceModel);
 		tokenizer = new TokenizerME(tokenModel);
 		parser = ParserFactory.create(parseModel);
@@ -189,7 +189,7 @@ public class NLP {
 	
 	public Set<Triple> generateTriples(String text) {
 		Set<Triple> triples = new HashSet<Triple>();
-		new TripleGenerator(triples, text).run();
+		new OpenNLPTripleGenerator(triples, text).run();
 		return triples;
 	}
 
