@@ -15,13 +15,12 @@ import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class RDFGenerator {
-	public static String LII_URI = "http://liicornell.org/liivoc#";
 
 	private final Model model;
 
 	public RDFGenerator() {
 		model = ModelFactory.createDefaultModel();
-		model.setNsPrefix("liivoc", LII_URI);
+		model.setNsPrefix("liivoc", LII.URI);
 		model.setNsPrefix("skos", SKOS.URI);
 	}
 
@@ -64,7 +63,7 @@ public class RDFGenerator {
 		if (predicate.equals(Triple.RELATED))
 			return SKOS.related;
 		createPredicateDescription(predicate);
-		return model.createProperty(LII_URI, toURI(predicate));
+		return model.createProperty(LII.URI, toURI(predicate));
 	}
 
 	private void createPredicateDescription(String predicate) {
@@ -78,7 +77,7 @@ public class RDFGenerator {
 		String uri = toURI(s);
 		if (uri.isEmpty())
 			return null;
-		return model.createResource(LII_URI + toURI(s));
+		return model.createResource(LII.URI + toURI(s));
 	}
 
 	/**
