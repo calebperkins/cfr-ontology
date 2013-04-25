@@ -498,13 +498,11 @@ http://sws.geonames.org/3577154/|Oranjestad
 http://sws.geonames.org/3577277/|Babijn
 http://sws.geonames.org/3577284/|Angochi
 http://sws.geonames.org/3041732/|Mariehamn
-http://sws.geonames.org/146970/|
 http://sws.geonames.org/147059/|Ahmadbayli
 http://sws.geonames.org/147105/|Shushi
 http://sws.geonames.org/147271/|Salyan
 http://sws.geonames.org/147425/|Neftcala
 http://sws.geonames.org/147429/|Nakhchivan
-http://sws.geonames.org/147622/|
 http://sws.geonames.org/147982/|Imishli
 http://sws.geonames.org/148290/|Dzhalilabad
 http://sws.geonames.org/148340/|Pushkino

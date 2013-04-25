@@ -19,6 +19,8 @@ with open("cities15000.txt", "r") as csv_file:
     for row in reader:
         geoid = row[0]
         ascii_name = row[2]
+        if not ascii_name:
+            continue
         s = "%s|%s" % (toURI(geoid), ascii_name)
         print s.encode('utf-8')
 

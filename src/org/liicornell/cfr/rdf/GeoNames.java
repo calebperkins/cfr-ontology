@@ -11,7 +11,7 @@ public class GeoNames {
 		return ResourceFactory.createProperty(URI, local);
 	}
 	
-	public static final Resource resource(String r) {
-		return ResourceFactory.createProperty(URI, r);
+	public static final Resource resource(String concept) {
+		return ResourceFactory.createResource(URI + concept);
 	}
 }

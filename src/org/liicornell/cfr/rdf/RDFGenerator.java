@@ -3,8 +3,8 @@ package org.liicornell.cfr.rdf;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-
+import java.util.HashMap;
+import java.util.Map;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -17,14 +17,23 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 public class RDFGenerator {
 
 	private final Model model;
-
+	
+	// Mapping of city, country names to URIs
+	private final Map<String, String> geonames;
+	
 	public RDFGenerator() {
+		this(new HashMap<String, String>());
+	}
+	
+	public RDFGenerator(Map<String, String> geonames) {
 		model = ModelFactory.createDefaultModel();
 		model.setNsPrefix("liivoc", LII.URI);
 		model.setNsPrefix("skos", SKOS.URI);
+		model.setNsPrefix("geo", GeoNames.URI);
+		this.geonames = geonames;
 	}
 
-	public void buildModel(Collection<Triple> triples) {
+	public void buildModel(Iterable<Triple> triples) {
 		for (Triple t : triples) {
 			if (t.subject.length() <= 2 || t.predicate.length() <= 2 || t.object.length() <= 2) {
 				continue;
@@ -42,9 +51,9 @@ public class RDFGenerator {
 	}
 
 	private void add(Triple t) {
-		Resource sub = liiResource(t.subject);
+		Resource sub = makeResource(t.subject);
 		if (sub == null) return;
-		Resource obj = liiResource(t.object);
+		Resource obj = makeResource(t.object);
 		if (obj == null) return;
 
 		obj.addProperty(SKOS.prefLabel, t.object);
@@ -67,17 +76,21 @@ public class RDFGenerator {
 	}
 
 	private void createPredicateDescription(String predicate) {
-		Resource pred = liiResource(predicate);
+		Resource pred = makeResource(predicate);
 		pred.addProperty(RDFS.label, predicate);
 		pred.addProperty(RDF.type, OWL.ObjectProperty);
 		pred.addProperty(RDF.type, RDF.Property);
 	}
 
-	private Resource liiResource(String s) {
-		String uri = toURI(s);
+	// First try to make a GeoNames resource, else an LII resource
+	private Resource makeResource(String s) {
+		String uri = geonames.get(s);
+		if (uri != null)
+			return model.createResource(uri);
+		uri = toURI(s);
 		if (uri.isEmpty())
 			return null;
-		return model.createResource(LII.URI + toURI(s));
+		return model.createResource(LII.URI + uri);
 	}
 
 	/**

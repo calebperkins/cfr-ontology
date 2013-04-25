@@ -1,7 +1,12 @@
 package org.liicornell.cfr.runner;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,6 +22,22 @@ import org.liicornell.cfr.rdf.RDFGenerator;
 import org.liicornell.cfr.rdf.Triple;
 
 public class Runner {
+	
+	private static Map<String, String> parseGeonames() throws IOException {
+		Map<String, String> map = new HashMap<String, String>();
+		String dir = System.getProperty("cornell.datasets.dir");
+		File f = new File(new File(dir, "geonames"), "geoids.txt");
+		BufferedReader br = new BufferedReader(new FileReader(f));
+		String line;
+		while ((line = br.readLine()) != null) {
+		   String[] split = line.split("\\|");
+		   System.out.println(line);
+		   assert split.length == 2;
+		   map.put(split[1].toLowerCase(), split[0]);
+		}
+		br.close();
+		return map;
+	}
 
 	private static void processFile(SAXBuilder builder, ElementFilter filter, File in, File out,
 			boolean useStanfordParser) throws Exception {
@@ -25,6 +46,8 @@ public class Runner {
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		Document doc = builder.build(in);
 		Element rootNode = doc.getRootElement();
+		
+		RDFGenerator rdfGenerator = new RDFGenerator(parseGeonames());
 
 		Set<Triple> triples = new HashSet<Triple>();
 
@@ -43,7 +66,6 @@ public class Runner {
 		pool.shutdown();
 		pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 
-		RDFGenerator rdfGenerator = new RDFGenerator();
 		rdfGenerator.buildModel(triples);
 		rdfGenerator.writeTo(out);
 	}
@@ -64,6 +86,7 @@ public class Runner {
 		ElementFilter filter = new ElementFilter("text");
 
 		if (input.isDirectory()) {
+			output.mkdirs();
 			for (File in : input.listFiles()) {
 				System.out.println("Processing " + in);
 				File out = new File(output, in.getName() + ".rdf");

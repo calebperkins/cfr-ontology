@@ -7,11 +7,11 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
 public class LII {
 	public static String URI = "http://liicornell.org/liivoc#";
 	
-	public static final Property property(String local) {
-		return ResourceFactory.createProperty(URI, local);
+	public static final Property property(String concept) {
+		return ResourceFactory.createProperty(URI, concept);
 	}
 	
-	public static final Resource resource(String r) {
-		return ResourceFactory.createProperty(URI, r);
+	public static final Resource resource(String concept) {
+		return ResourceFactory.createResource(URI + concept);
 	}
 }
