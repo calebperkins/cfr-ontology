@@ -22,7 +22,7 @@ import org.liicornell.cfr.rdf.RDFGenerator;
 import org.liicornell.cfr.rdf.Triple;
 
 public class Runner {
-	
+
 	private static Map<String, String> parseGeonames() throws IOException {
 		Map<String, String> map = new HashMap<String, String>();
 		String dir = System.getProperty("cornell.datasets.dir");
@@ -30,10 +30,9 @@ public class Runner {
 		BufferedReader br = new BufferedReader(new FileReader(f));
 		String line;
 		while ((line = br.readLine()) != null) {
-		   String[] split = line.split("\\|");
-		   System.out.println(line);
-		   assert split.length == 2;
-		   map.put(split[1].toLowerCase(), split[0]);
+			String[] split = line.split("\\|");
+			assert split.length == 2;
+			map.put(split[1].toLowerCase(), split[0]);
 		}
 		br.close();
 		return map;
@@ -46,7 +45,7 @@ public class Runner {
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		Document doc = builder.build(in);
 		Element rootNode = doc.getRootElement();
-		
+
 		RDFGenerator rdfGenerator = new RDFGenerator(parseGeonames());
 
 		Set<Triple> triples = new HashSet<Triple>();
