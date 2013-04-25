@@ -17,28 +17,32 @@ import org.liicornell.cfr.rdf.RDFGenerator;
 import org.liicornell.cfr.rdf.Triple;
 
 public class Runner {
-	
-	private static void processFile(SAXBuilder builder, ElementFilter filter, File in, File out) throws Exception {
+
+	private static void processFile(SAXBuilder builder, ElementFilter filter, File in, File out,
+			boolean useStanfordParser) throws Exception {
+		// TODO reuse pool across files
 		int threads = Runtime.getRuntime().availableProcessors();
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		Document doc = builder.build(in);
-		Element rootNode = doc.getRootElement();		
-		
+		Element rootNode = doc.getRootElement();
+
 		Set<Triple> triples = new HashSet<Triple>();
-		
+
 		// each text tag is processed separately
 		for (Element c : rootNode.getDescendants(filter)) {
-			pool.execute(new OpenNLPTripleGenerator(triples, c.getText()));
+			Runnable r = useStanfordParser ? new StanfordTripleGenerator(triples, c.getText())
+					: new OpenNLPTripleGenerator(triples, c.getText());
+			pool.execute(r);
 		}
-		
-//		for (Triple triple : triples) {
-//			System.out.println(triple);
-//		}
-		
+
+		// for (Triple triple : triples) {
+		// System.out.println(triple);
+		// }
+
 		// wait for threads to finish and build RDF file
 		pool.shutdown();
 		pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		
+
 		RDFGenerator rdfGenerator = new RDFGenerator();
 		rdfGenerator.buildModel(triples);
 		rdfGenerator.writeTo(out);
@@ -46,27 +50,31 @@ public class Runner {
 
 	public static void main(String[] args) throws Exception {
 		// parse arguments
-		if (args.length != 2) {
-			System.err.println("Usage: Runner input_file output_file");
-		}		
+		if (args.length < 2) {
+			System.err.println("Usage: Runner input_file_or_directory output_file_or_directory [-useStanfordParser]");
+			System.exit(-1);
+		}
 		File input = new File(args[0]);
 		File output = new File(args[1]);
-		
+
+		// TODO actually check flag
+		boolean useStanfordParser = args.length == 3;
+
 		SAXBuilder builder = new SAXBuilder();
-		ElementFilter filter = new ElementFilter("text");		
-		
+		ElementFilter filter = new ElementFilter("text");
+
 		if (input.isDirectory()) {
 			for (File in : input.listFiles()) {
 				System.out.println("Processing " + in);
 				File out = new File(output, in.getName() + ".rdf");
 				try {
-					processFile(builder, filter, in, out);
+					processFile(builder, filter, in, out, useStanfordParser);
 				} catch (Exception ex) {
 					System.err.println("Error processing " + in.getName() + ": " + ex);
 				}
 			}
 		} else {
-			processFile(builder, filter, input, output);
+			processFile(builder, filter, input, output, useStanfordParser);
 		}
 	}
 
