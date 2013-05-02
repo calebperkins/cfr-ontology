@@ -4,6 +4,11 @@ import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
 
+/**
+ * The LII vocabulary.
+ * @author Caleb Perkins
+ *
+ */
 public class LII {
 	public static String URI = "http://liicornell.org/liivoc#";
 	

@@ -6,6 +6,11 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Cleans up a block of XML text into a format more suitable for the NLP pipeline.
+ * @author Caleb Perkins
+ *
+ */
 public class Preprocessor {
 	public static final Collection<String> agenciesToRemove = new ArrayList<String>();
 
@@ -23,6 +28,11 @@ public class Preprocessor {
 		}
 	}
 
+	/**
+	 * Clean up the raw XML text
+	 * @param text raw XML text from the CFR
+	 * @return a cleaned up string that contains the sentences contained in the text
+	 */
 	public static String preprocessText(String text) {
 		// Remove anything in <>
 		text = text.replaceAll("\\<.*?\\>", "");

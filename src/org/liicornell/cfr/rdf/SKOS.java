@@ -3,6 +3,11 @@ package org.liicornell.cfr.rdf;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
 
+/**
+ * The SKOS vocabulary.
+ * @author Caleb Perkins
+ *
+ */
 public class SKOS {
 
 	public static String URI = "http://www.w3.org/2004/02/skos/core#";

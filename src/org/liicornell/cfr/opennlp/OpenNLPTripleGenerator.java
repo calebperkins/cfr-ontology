@@ -10,6 +10,11 @@ import org.liicornell.cfr.rdf.Triple;
 import opennlp.tools.parser.Parse;
 import opennlp.tools.util.Span;
 
+/**
+ * Implements the triple extraction algorithm from http://ailab.ijs.si/delia_rusu/Papers/is_2007.pdf
+ * @author Caleb Perkins
+ *
+ */
 public class OpenNLPTripleGenerator implements Runnable {
 	private final Set<Triple> triples;
 	private String[] sentences;
@@ -302,6 +307,7 @@ public class OpenNLPTripleGenerator implements Runnable {
 	@Override
 	public void run() {
 		text = Preprocessor.preprocessText(text);
+//		System.out.println(text);
 		sentences = OpenNLPPipeline.getInstance().getSentences(text);
 		tokens = OpenNLPPipeline.getInstance().getTokens(sentences);
 		for (int i = 0; i < sentences.length; i++) {
@@ -312,8 +318,8 @@ public class OpenNLPTripleGenerator implements Runnable {
 			for (Parse p : parses) {
 				if (!is(p.getChildren()[0], "S"))
 					continue;
-				System.out.println(sentence);
-				p.show();
+//				System.out.println(sentence);
+//				p.show();
 				traverse(p);
 				break;
 			}

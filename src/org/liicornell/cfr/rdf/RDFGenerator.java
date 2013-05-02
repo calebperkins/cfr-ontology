@@ -14,6 +14,11 @@ import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
+/**
+ * A wrapper around Jena to generate RDF files from Triple objects.
+ * @author Caleb Perkins
+ *
+ */
 public class RDFGenerator {
 
 	private final Model model;
@@ -33,6 +38,10 @@ public class RDFGenerator {
 		this.geonames = geonames;
 	}
 
+	/**
+	 * Add all the triples to this model
+	 * @param triples the collection of triples
+	 */
 	public void buildModel(Iterable<Triple> triples) {
 		for (Triple t : triples) {
 			if (t.subject.length() <= 2 || t.predicate.length() <= 2 || t.object.length() <= 2) {
@@ -57,28 +66,32 @@ public class RDFGenerator {
 
 		sub.addProperty(SKOS.prefLabel, sub);
 		sub.addProperty(RDFS.label, sub);
-		sub.addProperty(getProperty(t.predicate), obj);
+		sub.addProperty(makeProperty(t.predicate), obj);
 	}
 
-	private Property getProperty(String predicate) {
+	private Property makeProperty(String predicate) {
 		if (predicate.equals(Triple.BROADER))
 			return SKOS.broader;
 		if (predicate.equals(Triple.NARROWER))
 			return SKOS.narrower;
 		if (predicate.equals(Triple.RELATED))
 			return SKOS.related;
-		createPredicateDescription(predicate);
+		makePredicateDescription(predicate);
 		return model.createProperty(LII.URI, toURI(predicate));
 	}
 
-	private void createPredicateDescription(String predicate) {
+	private void makePredicateDescription(String predicate) {
 		Resource pred = makeResource(predicate);
 		pred.addProperty(RDFS.label, predicate);
 		pred.addProperty(RDF.type, OWL.ObjectProperty);
 		pred.addProperty(RDF.type, RDF.Property);
 	}
 
-	// First try to make a GeoNames resource, else an LII resource
+	/**
+	 * Create either a GeoNames or custom LII resource from an entity.
+	 * @param s the resource name
+	 * @return a GeoNames or LII resource with the given name
+	 */
 	private Resource makeResource(String s) {
 		String uri = geonames.get(s);
 		if (uri != null)

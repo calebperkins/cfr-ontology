@@ -24,22 +24,30 @@ import org.liicornell.cfr.rdf.Triple;
 
 /**
  * The main entry point into the Vocabulary Extraction tool.
+ * 
  * @author Caleb Perkins (ctp34@cornell.edu)
- *
+ * 
  */
 public class Runner {
 	private final SAXBuilder builder;
 	private final ElementFilter filter;
 	private final boolean useStanfordParser;
 	private final Map<String, String> geoNames;
-	
-	public Runner(boolean stanfordParser) throws IOException {
+	private final boolean verbose;
+
+	public Runner(boolean stanfordParser, boolean verbose) throws IOException {
 		builder = new SAXBuilder();
 		filter = new ElementFilter("text");
 		useStanfordParser = stanfordParser;
 		geoNames = parseGeonames();
+		this.verbose = verbose;
 	}
 
+	/**
+	 * GeoName URIs are preprocessed and stored in a file called "geoids.txt" in the datasets directory.
+	 * @return an immutable mapping of geographic entity names to their GeoName URIs
+	 * @throws IOException if the file cannot be read or found
+	 */
 	private static Map<String, String> parseGeonames() throws IOException {
 		Map<String, String> map = new HashMap<String, String>();
 		String dir = System.getProperty("cornell.datasets.dir");
@@ -55,8 +63,14 @@ public class Runner {
 		return Collections.unmodifiableMap(map);
 	}
 
+	/**
+	 * Extract triples from an XML file into an RDF file.
+	 * @param in an XML file from the CFR
+	 * @param out the destination RDF file
+	 * @throws Exception
+	 */
 	public void processFile(final File in, final File out) throws Exception {
-		// TODO reuse pool across files
+		// TODO reuse thread pool across files
 		int threads = Runtime.getRuntime().availableProcessors();
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		Document doc = builder.build(in);
@@ -73,13 +87,15 @@ public class Runner {
 			pool.execute(r);
 		}
 
-		// for (Triple triple : triples) {
-		// System.out.println(triple);
-		// }
-
 		// wait for threads to finish and build RDF file
 		pool.shutdown();
 		pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		
+		if (verbose) {
+			for (Triple triple : triples) {
+				System.out.println(triple);
+			}
+		}
 
 		rdfGenerator.buildModel(triples);
 		rdfGenerator.writeTo(out);
@@ -88,14 +104,22 @@ public class Runner {
 	public static void main(String[] args) throws Exception {
 		// parse arguments
 		if (args.length < 2) {
-			System.err.println("Usage: Runner input_file_or_directory output_file_or_directory [-useStanfordParser]");
+			System.err.println("Usage: Runner input_file_or_directory output_file_or_directory [-useStanfordParser] [-verbose]");
 			System.exit(-1);
 		}
 		File input = new File(args[0]);
 		File output = new File(args[1]);
-		boolean useStanfordParser = args.length == 3;
+		boolean useStanfordParser = false;
+		boolean verbose = false;
+		for (String arg : args) {
+			if (arg.equals("-useStanfordParser")) {
+				useStanfordParser = true;
+			} else if (arg.equals("-verbose")) {
+				verbose = true;
+			}
+		}
 
-		Runner runner = new Runner(useStanfordParser);
+		Runner runner = new Runner(useStanfordParser, verbose);
 
 		if (input.isDirectory()) {
 			output.mkdirs();

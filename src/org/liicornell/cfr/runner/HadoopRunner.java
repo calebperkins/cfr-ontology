@@ -31,6 +31,11 @@ import org.apache.mahout.classifier.bayes.XmlInputFormat;
 import org.liicornell.cfr.opennlp.OpenNLPPipeline;
 import org.liicornell.cfr.preprocessor.Preprocessor;
 
+/**
+ * An alternative entry for the application, to run on Hadoop.
+ * @author Caleb Perkins
+ *
+ */
 public class HadoopRunner extends Configured implements Tool {
 	private static class Map extends MapReduceBase implements
 			Mapper<Text, Text, Text, Text> {

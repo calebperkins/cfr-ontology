@@ -71,7 +71,7 @@ public class OpenNLPPipeline {
 			parseModel = new ParserModel(modelIn);
 			modelIn.close();
 			
-			// pos
+			// part-of-speech model. not currently used
 			modelIn = getModel("en-pos-maxent.bin");
 			posModel = new POSModel(modelIn);
 			modelIn.close();		
@@ -107,6 +107,13 @@ public class OpenNLPPipeline {
 		}
 	}
 
+	/**
+	 * Create parse trees from a sentence
+	 * @param text the sentence string
+	 * @param tokens an array of spans with token positions
+	 * @param n how many parse trees to return
+	 * @return an array of probable parse trees
+	 */
 	public Parse[] parseSentence(final String text, final Span[] tokens, final int n) {
 		final Parse p = new Parse(text,
 		// a new span covering the entire text
@@ -133,6 +140,12 @@ public class OpenNLPPipeline {
 		return parseSentence(text, tokens, 1)[0];
 	}
 
+	/**
+	 * Coreference resolution. Doesn't work terribly well.
+	 * @param sentences
+	 * @param tokens
+	 * @return an array of entities in the text
+	 */
 	public DiscourseEntity[] findEntityMentions(final String[] sentences, final Span[][] tokens) {
 		// tokens should correspond to sentences
 		assert sentences.length == tokens.length;
