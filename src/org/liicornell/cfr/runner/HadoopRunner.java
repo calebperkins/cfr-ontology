@@ -30,7 +30,7 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.classifier.bayes.XmlInputFormat;
 import org.liicornell.cfr.opennlp.OpenNLPPipeline;
 
-public class Preprocessor extends Configured implements Tool {
+public class HadoopRunner extends Configured implements Tool {
 	private static class Map extends MapReduceBase implements
 			Mapper<Text, Text, Text, Text> {
 
@@ -131,13 +131,13 @@ public class Preprocessor extends Configured implements Tool {
 	}
 
 	public static void main(String[] args) throws Exception {
-		int res = ToolRunner.run(null, new Preprocessor(), args);
+		int res = ToolRunner.run(null, new HadoopRunner(), args);
 		System.exit(res);
 	}
 
 	@Override
 	public int run(String[] args) throws Exception {
-		JobConf conf = new JobConf(getConf(), Preprocessor.class);
+		JobConf conf = new JobConf(getConf(), HadoopRunner.class);
 		conf.setJobName("preprocess");
 
 		conf.setOutputKeyClass(Text.class);

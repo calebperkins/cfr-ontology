@@ -41,10 +41,6 @@ public class RDFGenerator {
 			add(t);
 		}
 	}
-
-	public void writeTo(String fileName) throws IOException {
-		model.write(new FileOutputStream(fileName));
-	}
 	
 	public void writeTo(File file) throws IOException {
 		model.write(new FileOutputStream(file));

@@ -38,15 +38,15 @@ public class Runner {
 		return map;
 	}
 
-	private static void processFile(SAXBuilder builder, ElementFilter filter, File in, File out,
-			boolean useStanfordParser) throws Exception {
+	private static void processFile(final SAXBuilder builder, final ElementFilter filter, final File in, final File out,
+			final boolean useStanfordParser, final Map<String, String> geoNames) throws Exception {
 		// TODO reuse pool across files
 		int threads = Runtime.getRuntime().availableProcessors();
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		Document doc = builder.build(in);
 		Element rootNode = doc.getRootElement();
 
-		RDFGenerator rdfGenerator = new RDFGenerator(parseGeonames());
+		RDFGenerator rdfGenerator = new RDFGenerator(geoNames);
 
 		Set<Triple> triples = new HashSet<Triple>();
 
@@ -83,6 +83,7 @@ public class Runner {
 
 		SAXBuilder builder = new SAXBuilder();
 		ElementFilter filter = new ElementFilter("text");
+		Map<String, String> geoNames = parseGeonames();
 
 		if (input.isDirectory()) {
 			output.mkdirs();
@@ -90,13 +91,13 @@ public class Runner {
 				System.out.println("Processing " + in);
 				File out = new File(output, in.getName() + ".rdf");
 				try {
-					processFile(builder, filter, in, out, useStanfordParser);
+					processFile(builder, filter, in, out, useStanfordParser, geoNames);
 				} catch (Exception ex) {
 					System.err.println("Error processing " + in.getName() + ": " + ex);
 				}
 			}
 		} else {
-			processFile(builder, filter, input, output, useStanfordParser);
+			processFile(builder, filter, input, output, useStanfordParser, geoNames);
 		}
 	}
 

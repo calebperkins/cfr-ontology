@@ -1,22 +1,17 @@
 package org.liicornell.cfr.opennlp;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.liicornell.cfr.rdf.Triple;
 
 import opennlp.tools.coref.DefaultLinker;
 import opennlp.tools.coref.DiscourseEntity;
@@ -42,6 +37,8 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 
+import org.liicornell.cfr.rdf.Triple;
+
 public class OpenNLPPipeline {
 	private static OpenNLPPipeline instance;
 
@@ -49,8 +46,6 @@ public class OpenNLPPipeline {
 	private final static SentenceModel sentenceModel;
 	private final static ParserModel parseModel;
 	private final static POSModel posModel;
-	
-	public static final Collection<String> agenciesToRemove = new ArrayList<String>();
 
 	private final SentenceDetector sentenceDetector;
 	private final Tokenizer tokenizer;
@@ -79,17 +74,7 @@ public class OpenNLPPipeline {
 			// pos
 			modelIn = getModel("en-pos-maxent.bin");
 			posModel = new POSModel(modelIn);
-			modelIn.close();
-			
-			// Agency file
-			File agencies = new File(System.getProperty("cornell.datasets.dir"), "agencies.txt");
-			BufferedReader fis = new BufferedReader(new FileReader(agencies));
-			String agency = null;
-			while ((agency = fis.readLine()) != null) {
-				agenciesToRemove.add(agency);
-			}
-			fis.close();
-			
+			modelIn.close();		
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

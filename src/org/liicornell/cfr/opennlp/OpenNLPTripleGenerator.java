@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.liicornell.cfr.preprocessor.Preprocessor;
 import org.liicornell.cfr.rdf.Triple;
 
 import opennlp.tools.parser.Parse;
@@ -297,37 +298,10 @@ public class OpenNLPTripleGenerator implements Runnable {
 	private static boolean is(Parse p, String type) {
 		return p != null && p.getType().equals(type);
 	}
-	
-	public static String preprocessText(String text) {
-		// Remove anything in <>
-		text = text.replaceAll("\\<.*?\\>", "");
-		// Remove and\or and/or
-		text = text.replace("and/or", "or");
-		text = text.replace("and\\or", "or");
-		text = text.replaceAll("\n", "");
-		text = text.replaceAll("( )+", " ");
-		text = text.replaceAll("§|¤", "Section");
-		text = text.replaceAll(";|:", ".");
-		
-		text = text.replaceAll("\\(.*\\)", ""); // Remove (X) and ()
-		text = text.replaceAll("\\d+(\\.*)", ""); // Remove numbers
-		
-		text = text.replaceAll("Ò|Ó", "\"");
-		
-		// Replace oxford comma
-		text = text.replaceAll(", or", " or");
-		text = text.replaceAll(", and", " and");
-		
-		for (String agency : OpenNLPPipeline.agenciesToRemove) {
-			text = text.replaceAll(agency, "Agency");
-		}
-		
-		return text;
-	}
 
 	@Override
 	public void run() {
-		text = preprocessText(text);
+		text = Preprocessor.preprocessText(text);
 		sentences = OpenNLPPipeline.getInstance().getSentences(text);
 		tokens = OpenNLPPipeline.getInstance().getTokens(sentences);
 		for (int i = 0; i < sentences.length; i++) {

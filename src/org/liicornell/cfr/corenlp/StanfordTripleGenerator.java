@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.liicornell.cfr.preprocessor.Preprocessor;
 import org.liicornell.cfr.rdf.Triple;
 
 import edu.stanford.nlp.ling.HasWord;
@@ -79,6 +80,7 @@ public class StanfordTripleGenerator implements Runnable {
 
 	@Override
 	public void run() {
+		text = Preprocessor.preprocessText(text);
 		Reader reader = new StringReader(text);
 		for (List<HasWord> sentence : new DocumentPreprocessor(reader)) {
 			if (sentence.size() > 70)
