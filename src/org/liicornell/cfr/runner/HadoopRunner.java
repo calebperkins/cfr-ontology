@@ -29,6 +29,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.classifier.bayes.XmlInputFormat;
 import org.liicornell.cfr.opennlp.OpenNLPPipeline;
+import org.liicornell.cfr.preprocessor.Preprocessor;
 
 public class HadoopRunner extends Configured implements Tool {
 	private static class Map extends MapReduceBase implements
@@ -100,22 +101,7 @@ public class HadoopRunner extends Configured implements Tool {
 		}
 
 		private String processSentence(String sentence) {
-			// Remove anything in <>
-			sentence = sentence.replaceAll("\\<.*?\\>", "");
-			// Remove and\or and/or
-			sentence = sentence.replace("and/or", "or");
-			sentence = sentence.replace("and\\or", "or");
-			sentence = sentence.replaceAll("\n", "");
-			sentence = sentence.replaceAll("( )+", " ");
-			sentence = sentence.replaceAll("§", "Section");
-			sentence = sentence.replaceAll(";", ".");
-			sentence = sentence.replaceAll(":", ".");
-			// Remove numbers
-			sentence = sentence.replaceAll("\\d*(\\.)*\\d*", "");
-			// Replace oxford comma
-			sentence = sentence.replaceAll(", or", " or");
-			sentence = sentence.replaceAll(", and", " and");
-			sentence = sentence + ".";
+			sentence = Preprocessor.preprocessText(sentence);
 			
 			if (resolvePronouns) {
 				sentence = OpenNLPPipeline.getInstance().resolvePronouns(sentence);

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,7 +22,23 @@ import org.liicornell.cfr.opennlp.OpenNLPTripleGenerator;
 import org.liicornell.cfr.rdf.RDFGenerator;
 import org.liicornell.cfr.rdf.Triple;
 
+/**
+ * The main entry point into the Vocabulary Extraction tool.
+ * @author Caleb Perkins (ctp34@cornell.edu)
+ *
+ */
 public class Runner {
+	private final SAXBuilder builder;
+	private final ElementFilter filter;
+	private final boolean useStanfordParser;
+	private final Map<String, String> geoNames;
+	
+	public Runner(boolean stanfordParser) throws IOException {
+		builder = new SAXBuilder();
+		filter = new ElementFilter("text");
+		useStanfordParser = stanfordParser;
+		geoNames = parseGeonames();
+	}
 
 	private static Map<String, String> parseGeonames() throws IOException {
 		Map<String, String> map = new HashMap<String, String>();
@@ -35,11 +52,10 @@ public class Runner {
 			map.put(split[1].toLowerCase(), split[0]);
 		}
 		br.close();
-		return map;
+		return Collections.unmodifiableMap(map);
 	}
 
-	private static void processFile(final SAXBuilder builder, final ElementFilter filter, final File in, final File out,
-			final boolean useStanfordParser, final Map<String, String> geoNames) throws Exception {
+	public void processFile(final File in, final File out) throws Exception {
 		// TODO reuse pool across files
 		int threads = Runtime.getRuntime().availableProcessors();
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
@@ -77,13 +93,9 @@ public class Runner {
 		}
 		File input = new File(args[0]);
 		File output = new File(args[1]);
-
-		// TODO actually check flag
 		boolean useStanfordParser = args.length == 3;
 
-		SAXBuilder builder = new SAXBuilder();
-		ElementFilter filter = new ElementFilter("text");
-		Map<String, String> geoNames = parseGeonames();
+		Runner runner = new Runner(useStanfordParser);
 
 		if (input.isDirectory()) {
 			output.mkdirs();
@@ -91,13 +103,13 @@ public class Runner {
 				System.out.println("Processing " + in);
 				File out = new File(output, in.getName() + ".rdf");
 				try {
-					processFile(builder, filter, in, out, useStanfordParser, geoNames);
+					runner.processFile(in, out);
 				} catch (Exception ex) {
 					System.err.println("Error processing " + in.getName() + ": " + ex);
 				}
 			}
 		} else {
-			processFile(builder, filter, input, output, useStanfordParser, geoNames);
+			runner.processFile(input, output);
 		}
 	}
 
