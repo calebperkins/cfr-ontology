@@ -104,7 +104,7 @@ public class Runner {
 	public static void main(String[] args) throws Exception {
 		// parse arguments
 		if (args.length < 2) {
-			System.err.println("Usage: Runner input_file_or_directory output_file_or_directory [-useStanfordParser] [-verbose]");
+			System.err.println("You must provide the arguments: input/file/or/directory output/file/or/directory [-useStanfordParser] [-verbose]");
 			System.exit(-1);
 		}
 		File input = new File(args[0]);

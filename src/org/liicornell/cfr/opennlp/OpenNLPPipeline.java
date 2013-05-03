@@ -101,7 +101,8 @@ public class OpenNLPPipeline {
 		parser = ParserFactory.create(parseModel);
 		tagger = new POSTaggerME(posModel);
 		try {
-			linker = new DefaultLinker("datasets/coref", LinkerMode.TEST);
+			File path = new File(System.getProperty("cornell.datasets.dir"), "coref");
+			linker = new DefaultLinker(path.getAbsolutePath(), LinkerMode.TEST);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
