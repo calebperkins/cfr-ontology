@@ -1,0 +1,8 @@
+opennlp.tools.stemmer
+org.apache.mahout.classifier.bayes
+org.liicornell.cfr.corenlp
+org.liicornell.cfr.opennlp
+org.liicornell.cfr.preprocessor
+org.liicornell.cfr.rdf
+org.liicornell.cfr.runner
+org.liicornell.cfr.tests

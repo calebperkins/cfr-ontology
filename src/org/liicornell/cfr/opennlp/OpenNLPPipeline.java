@@ -38,6 +38,7 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 
 import org.liicornell.cfr.rdf.Triple;
+import org.liicornell.cfr.runner.Runner;
 
 public class OpenNLPPipeline {
 	private static OpenNLPPipeline instance;
@@ -81,8 +82,7 @@ public class OpenNLPPipeline {
 	}
 	
 	private static InputStream getModel(String fileName) throws FileNotFoundException {
-		String dir = System.getProperty("cornell.datasets.dir");
-		File in = new File(dir, fileName);
+		File in = new File(Runner.DATASETS_PATH, fileName);
 		return new FileInputStream(in);
 	}
 
@@ -101,7 +101,7 @@ public class OpenNLPPipeline {
 		parser = ParserFactory.create(parseModel);
 		tagger = new POSTaggerME(posModel);
 		try {
-			File path = new File(System.getProperty("cornell.datasets.dir"), "coref");
+			File path = new File(Runner.DATASETS_PATH, "coref");
 			linker = new DefaultLinker(path.getAbsolutePath(), LinkerMode.TEST);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);

@@ -1,45 +1,60 @@
 package org.liicornell.cfr.rdf;
 
+/**
+ * Represents a triple object, with a given subject, object, and predicate.
+ * 
+ * This class is meant to be a simple data container. It does minimal logic to
+ * format the given strings, such as trimming them and replacing invalid
+ * characters.
+ * 
+ * @author Caleb Perkins (ctp34@cornell.edu)
+ * 
+ */
 public class Triple {
 	public final String subject;
 	public final String object;
 	public final String predicate;
-	
+
 	public static final String BROADER = "skos:broader";
 	public static final String NARROWER = "skos:narrower";
 	public static final String RELATED = "skos:related";
-	
+
 	private Triple(String subject, String object, String predicate) {
 		this.subject = format(subject);
 		this.object = format(object);
 		this.predicate = format(predicate);
 	}
-	
+
 	public static String format(String s) {
 		return s.replace('Ñ', '_').replaceAll(",|\\(|\\)", "").toLowerCase().trim();
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("(%s, %s, %s)", subject, object, predicate);
 	}
-	
+
 	public static Triple narrower(String subject, String object) {
 		return new Triple(subject, object, NARROWER);
 	}
-	
+
 	public static Triple broader(String subject, String object) {
 		return new Triple(subject, object, BROADER);
 	}
-	
+
 	public static Triple related(String subject, String object) {
 		return new Triple(subject, object, RELATED);
 	}
-	
+
 	public static Triple lii(String subject, String object, String predicate) {
 		return new Triple(subject, object, predicate);
 	}
-	
+
+	/**
+	 * Inverts a triple, turning a skos:narrower into a skos:broader.
+	 * 
+	 * @return a new inverted triple
+	 */
 	public Triple inversion() {
 		if (predicate.equals(BROADER))
 			return new Triple(object, subject, NARROWER);

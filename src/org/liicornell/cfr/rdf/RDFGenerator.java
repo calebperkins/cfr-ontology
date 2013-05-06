@@ -23,7 +23,9 @@ public class RDFGenerator {
 
 	private final Model model;
 	
-	// Mapping of city, country names to URIs
+	/**
+	 * Mapping of city, country names to URIs
+	 */
 	private final Map<String, String> geonames;
 	
 	public RDFGenerator() {
@@ -51,6 +53,11 @@ public class RDFGenerator {
 		}
 	}
 	
+	/**
+	 * Write the RDF file to the specified file
+	 * @param file the file to write the model to
+	 * @throws IOException
+	 */
 	public void writeTo(File file) throws IOException {
 		model.write(new FileOutputStream(file));
 	}

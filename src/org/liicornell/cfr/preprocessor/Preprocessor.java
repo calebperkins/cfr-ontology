@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.liicornell.cfr.runner.Runner;
+
 /**
  * Cleans up a block of XML text into a format more suitable for the NLP pipeline.
  * @author Caleb Perkins
@@ -16,7 +18,7 @@ public class Preprocessor {
 
 	static {
 		try {
-			File agencies = new File(System.getProperty("cornell.datasets.dir"), "agencies.txt");
+			File agencies = new File(Runner.DATASETS_PATH, "agencies.txt");
 			BufferedReader fis = new BufferedReader(new FileReader(agencies));
 			String agency = null;
 			while ((agency = fis.readLine()) != null) {
